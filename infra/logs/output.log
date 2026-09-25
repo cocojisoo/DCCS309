@@ -1,0 +1,213 @@
+===== [2026-09-25 23:31:35] dev (port 3000) =====
+▲ Next.js 16.3.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://10.0.0.8:3000
+✓ Ready in 485ms
+✓ Running next.config.ts took 34ms
+
+ GET / 200 in 1604ms (next.js: 1459ms, application-code: 145ms)
+ GET / 200 in 25ms (next.js: 4ms, application-code: 21ms)
+ GET /algorithms 200 in 189ms (next.js: 157ms, application-code: 32ms)
+ GET /map-apps 200 in 175ms (next.js: 142ms, application-code: 33ms)
+ GET /logs 200 in 148ms (next.js: 124ms, application-code: 24ms)
+ GET /api/tmap?mode=car 200 in 169ms (next.js: 155ms, application-code: 14ms)
+ GET /api/kakao?mode=walk 200 in 104ms (next.js: 98ms, application-code: 6ms)
+ GET /api/tmap?mode=bike 400 in 7ms (next.js: 3ms, application-code: 4ms)
+ GET /api/logs?file=output&lines=5 200 in 114ms (next.js: 107ms, application-code: 7ms)
+ GET / 200 in 38ms (next.js: 9ms, application-code: 29ms)
+ GET /algorithms 200 in 40ms (next.js: 6ms, application-code: 34ms)
+ GET /map-apps 200 in 33ms (next.js: 5ms, application-code: 27ms)
+ GET /api/tmap?mode=car 200 in 10ms (next.js: 4ms, application-code: 6ms)
+ GET /api/kakao?mode=car 200 in 17ms (next.js: 12ms, application-code: 5ms)
+ GET /api/tmap?mode=walk 200 in 23ms (next.js: 18ms, application-code: 5ms)
+ GET /logs 200 in 29ms (next.js: 5ms, application-code: 24ms)
+ GET /api/logs?file=error&lines=300 200 in 30ms (next.js: 3ms, application-code: 26ms)
+ GET /api/logs?file=output&lines=300 200 in 31ms (next.js: 11ms, application-code: 21ms)
+ GET /api/logs?file=output&lines=300 200 in 17ms (next.js: 3ms, application-code: 15ms)
+ GET /api/logs?file=error&lines=300 200 in 18ms (next.js: 8ms, application-code: 10ms)
+ GET / 200 in 29ms (next.js: 5ms, application-code: 23ms)
+ GET / 200 in 32ms (next.js: 8ms, application-code: 24ms)
+ GET /logs 200 in 26ms (next.js: 5ms, application-code: 21ms)
+ GET /api/logs?file=output&lines=300 200 in 22ms (next.js: 3ms, application-code: 19ms)
+ GET /api/logs?file=error&lines=300 200 in 28ms (next.js: 10ms, application-code: 18ms)
+ GET /api/logs?file=output&lines=300 200 in 15ms (next.js: 2ms, application-code: 12ms)
+ GET /api/logs?file=error&lines=300 200 in 15ms (next.js: 9ms, application-code: 6ms)
+===== [2026-09-25 23:33:45] stopped =====
+===== [2026-09-25 23:55:05] dev (port 3000) =====
+▲ Next.js 16.3.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://10.0.0.8:3000
+- Environments: .env.local
+✓ Ready in 397ms
+✓ Running next.config.ts took 40ms
+
+ GET / 200 in 332ms (next.js: 169ms, application-code: 163ms)
+ GET / 200 in 54ms (next.js: 6ms, application-code: 48ms)
+ GET /map-apps 200 in 52ms (next.js: 25ms, application-code: 27ms)
+ GET /api/tmap?mode=car 200 in 199ms (next.js: 48ms, application-code: 151ms)
+ GET /api/kakao?mode=car 200 in 204ms (next.js: 100ms, application-code: 104ms)
+ GET /api/tmap?mode=walk 200 in 214ms (next.js: 108ms, application-code: 106ms)
+ GET /api/kakao?mode=car 200 in 50ms (next.js: 11ms, application-code: 39ms)
+ GET /api/tmap?mode=car 200 in 70ms (next.js: 3ms, application-code: 67ms)
+ GET /api/tmap?mode=walk 200 in 80ms (next.js: 16ms, application-code: 65ms)
+ GET /logs 200 in 44ms (next.js: 22ms, application-code: 21ms)
+ GET /api/logs?file=output&lines=300 200 in 55ms (next.js: 25ms, application-code: 30ms)
+ GET /api/logs?file=error&lines=300 200 in 26ms (next.js: 3ms, application-code: 23ms)
+ GET /api/logs?file=output&lines=300 200 in 26ms (next.js: 8ms, application-code: 18ms)
+ GET /api/logs?file=error&lines=300 200 in 27ms (next.js: 14ms, application-code: 13ms)
+ GET /api/logs?file=error&lines=300 200 in 11ms (next.js: 4ms, application-code: 7ms)
+ GET /map-apps 200 in 21ms (next.js: 5ms, application-code: 16ms)
+ GET /api/kakao?mode=car 200 in 98ms (next.js: 12ms, application-code: 86ms)
+ GET /api/tmap?mode=car 200 in 105ms (next.js: 3ms, application-code: 102ms)
+ GET /api/tmap?mode=walk 200 in 125ms (next.js: 18ms, application-code: 107ms)
+ GET /api/kakao?mode=car 200 in 40ms (next.js: 10ms, application-code: 31ms)
+ GET /api/tmap?mode=car 200 in 72ms (next.js: 5ms, application-code: 67ms)
+ GET /api/tmap?mode=walk 200 in 73ms (next.js: 15ms, application-code: 58ms)
+ GET /algorithms 200 in 52ms (next.js: 24ms, application-code: 28ms)
+ GET / 200 in 19ms (next.js: 4ms, application-code: 14ms)
+===== [2026-09-25 23:59:06] stopped =====
+===== [2026-09-25 23:59:11] dev (port 3000) =====
+▲ Next.js 16.3.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://10.0.0.8:3000
+- Environments: .env
+✓ Ready in 397ms
+✓ Running next.config.ts took 35ms
+
+ GET / 200 in 433ms (next.js: 256ms, application-code: 176ms)
+ GET / 200 in 40ms (next.js: 6ms, application-code: 34ms)
+ GET / 200 in 38ms (next.js: 5ms, application-code: 34ms)
+ GET /algorithms 200 in 57ms (next.js: 23ms, application-code: 34ms)
+ GET /map-apps 200 in 40ms (next.js: 22ms, application-code: 17ms)
+ GET /api/kakao?mode=car 200 in 185ms (next.js: 95ms, application-code: 89ms)
+ GET /api/tmap?mode=car 200 in 199ms (next.js: 52ms, application-code: 147ms)
+ GET /api/tmap?mode=walk 200 in 138ms (next.js: 36ms, application-code: 102ms)
+ GET /logs 200 in 45ms (next.js: 26ms, application-code: 20ms)
+ GET /api/logs?file=output&lines=300 200 in 54ms (next.js: 23ms, application-code: 32ms)
+ GET /api/logs?file=error&lines=300 200 in 56ms (next.js: 30ms, application-code: 26ms)
+ GET /api/logs?file=output&lines=300 200 in 56ms (next.js: 35ms, application-code: 21ms)
+ GET /api/logs?file=error&lines=300 200 in 24ms (next.js: 13ms, application-code: 12ms)
+  Reload env: .env
+ GET /logs 200 in 85ms (next.js: 54ms, application-code: 30ms)
+===== [2026-09-26 00:01:57] stopped =====
+===== [2026-09-26 00:02:21] dev (port 3000) =====
+▲ Next.js 16.3.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://10.0.0.8:3000
+- Environments: .env
+✓ Ready in 389ms
+✓ Running next.config.ts took 33ms
+
+ GET /logs 200 in 391ms (next.js: 231ms, application-code: 160ms)
+ GET /api/logs?file=output&lines=300 200 in 84ms (next.js: 49ms, application-code: 35ms)
+ GET /api/logs?file=error&lines=300 200 in 85ms (next.js: 62ms, application-code: 22ms)
+ GET /api/logs?file=output&lines=300 200 in 85ms (next.js: 68ms, application-code: 17ms)
+ GET /api/logs?file=error&lines=300 200 in 84ms (next.js: 72ms, application-code: 12ms)
+ GET / 200 in 37ms (next.js: 21ms, application-code: 16ms)
+ GET /map-apps 200 in 37ms (next.js: 21ms, application-code: 16ms)
+ GET /api/tmap?mode=walk 200 in 187ms (next.js: 58ms, application-code: 129ms)
+ GET /api/tmap?mode=car 200 in 194ms (next.js: 24ms, application-code: 170ms)
+ GET /api/kakao?mode=car 200 in 214ms (next.js: 50ms, application-code: 164ms)
+ GET /logs 200 in 24ms (next.js: 6ms, application-code: 18ms)
+ GET /api/logs?file=output&lines=300 200 in 32ms (next.js: 6ms, application-code: 26ms)
+ GET /api/logs?file=error&lines=300 200 in 32ms (next.js: 11ms, application-code: 21ms)
+ GET /api/logs?file=output&lines=300 200 in 33ms (next.js: 18ms, application-code: 15ms)
+ GET /api/logs?file=error&lines=300 200 in 33ms (next.js: 22ms, application-code: 11ms)
+===== [2026-09-26 00:02:55] stopped =====
+===== [2026-09-26 00:02:59] dev (port 3000) =====
+▲ Next.js 16.3.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://10.0.0.8:3000
+- Environments: .env.local
+✓ Ready in 397ms
+✓ Running next.config.ts took 32ms
+
+ GET /logs 200 in 404ms (next.js: 255ms, application-code: 149ms)
+ GET /api/logs?file=output&lines=300 200 in 90ms (next.js: 44ms, application-code: 46ms)
+ GET /api/logs?file=error&lines=300 200 in 91ms (next.js: 59ms, application-code: 32ms)
+ GET /api/logs?file=output&lines=300 200 in 91ms (next.js: 64ms, application-code: 27ms)
+ GET /api/logs?file=error&lines=300 200 in 92ms (next.js: 69ms, application-code: 23ms)
+ GET /logs 200 in 29ms (next.js: 4ms, application-code: 25ms)
+ GET /api/logs?file=output&lines=300 200 in 28ms (next.js: 4ms, application-code: 24ms)
+ GET /api/logs?file=error&lines=300 200 in 28ms (next.js: 11ms, application-code: 17ms)
+ GET /api/logs?file=output&lines=300 200 in 29ms (next.js: 16ms, application-code: 13ms)
+ GET /api/logs?file=error&lines=300 200 in 29ms (next.js: 20ms, application-code: 9ms)
+ GET /api/logs?file=output&lines=300 200 in 9ms (next.js: 3ms, application-code: 6ms)
+ GET / 200 in 39ms (next.js: 21ms, application-code: 17ms)
+ GET /map-apps 200 in 53ms (next.js: 25ms, application-code: 27ms)
+ GET / 200 in 17ms (next.js: 5ms, application-code: 12ms)
+ GET /map-apps 200 in 26ms (next.js: 6ms, application-code: 20ms)
+ GET /api/tmap?mode=car 200 in 453ms (next.js: 22ms, application-code: 431ms)
+ GET /api/tmap?mode=walk 200 in 471ms (next.js: 74ms, application-code: 397ms)
+ GET /api/kakao?mode=car 200 in 513ms (next.js: 58ms, application-code: 456ms)
+ GET /logs 200 in 24ms (next.js: 4ms, application-code: 20ms)
+ GET /api/logs?file=output&lines=300 200 in 28ms (next.js: 5ms, application-code: 23ms)
+ GET /api/logs?file=error&lines=300 200 in 29ms (next.js: 11ms, application-code: 18ms)
+ GET /api/logs?file=output&lines=300 200 in 30ms (next.js: 16ms, application-code: 14ms)
+ GET /api/logs?file=error&lines=300 200 in 30ms (next.js: 20ms, application-code: 9ms)
+ GET /logs 200 in 21ms (next.js: 4ms, application-code: 16ms)
+  Reload env: .env.local
+ GET /logs 200 in 80ms (next.js: 48ms, application-code: 31ms)
+===== [2026-09-26 00:09:17] stopped =====
+===== [2026-09-26 00:09:22] dev (port 3000) =====
+▲ Next.js 16.3.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://10.0.0.8:3000
+- Environments: .env.local
+✓ Ready in 411ms
+✓ Running next.config.ts took 41ms
+
+ GET /logs 200 in 323ms (next.js: 156ms, application-code: 167ms)
+ GET /api/logs?file=output&lines=300 200 in 89ms (next.js: 47ms, application-code: 41ms)
+ GET /api/logs?file=error&lines=300 200 in 89ms (next.js: 60ms, application-code: 29ms)
+ GET /api/logs?file=output&lines=300 200 in 28ms (next.js: 4ms, application-code: 24ms)
+ GET /api/logs?file=error&lines=300 200 in 27ms (next.js: 9ms, application-code: 18ms)
+ GET / 200 in 40ms (next.js: 23ms, application-code: 17ms)
+ GET / 200 in 17ms (next.js: 5ms, application-code: 12ms)
+ GET / 200 in 63ms (next.js: 5ms, application-code: 58ms)
+ GET /map-apps 200 in 47ms (next.js: 22ms, application-code: 25ms)
+[kakao] car 경로 조회 성공: 1340m, 277초
+ GET /api/kakao?mode=car 200 in 177ms (next.js: 50ms, application-code: 127ms)
+[tmap] car 경로 조회 성공: 1338m, 262초
+ GET /api/tmap?mode=car 200 in 195ms (next.js: 22ms, application-code: 173ms)
+[tmap] walk 경로 조회 성공: 1371m, 1187초
+ GET /api/tmap?mode=walk 200 in 202ms (next.js: 60ms, application-code: 142ms)
+ GET /logs 200 in 28ms (next.js: 5ms, application-code: 24ms)
+ GET /api/logs?file=output&lines=300 200 in 32ms (next.js: 4ms, application-code: 29ms)
+ GET /api/logs?file=error&lines=300 200 in 33ms (next.js: 12ms, application-code: 20ms)
+ GET /api/logs?file=output&lines=300 200 in 26ms (next.js: 10ms, application-code: 15ms)
+ GET /api/logs?file=error&lines=300 200 in 26ms (next.js: 16ms, application-code: 10ms)
+ GET / 200 in 20ms (next.js: 5ms, application-code: 15ms)
+ GET /algorithms 200 in 53ms (next.js: 25ms, application-code: 27ms)
+▲ Next.js 16.3.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://10.0.0.8:3000
+- Environments: .env.local
+✓ Ready in 415ms
+✓ Running next.config.ts took 39ms
+
+▲ Next.js 16.3.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://10.0.0.8:3000
+- Environments: .env.local
+✓ Ready in 407ms
+✓ Running next.config.ts took 30ms
+
+===== [2026-09-26 01:30:44] dev (port 3000) =====
+▲ Next.js 16.3.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://10.0.0.8:3000
+- Environments: .env
+✓ Ready in 434ms
+✓ Running next.config.ts took 33ms
+
+ GET / 200 in 1790ms (next.js: 1636ms, application-code: 154ms)
+===== [2026-09-26 01:31:12] stopped =====
+===== [2026-09-26 01:39:28] dev (port 3000) =====
+▲ Next.js 16.3.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://10.0.0.8:3000
+- Environments: .env
+✓ Ready in 388ms
+✓ Running next.config.ts took 33ms
+

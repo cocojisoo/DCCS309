@@ -1,0 +1,11 @@
+import { readFileSync } from "node:fs";
+const env = Object.fromEntries(readFileSync(".env.local","utf8").split(/\r?\n/).filter(l=>l.includes("=")&&!l.startsWith("#")).map(l=>{const i=l.indexOf("=");return [l.slice(0,i).trim(), l.slice(i+1).trim().replace(/^["']|["']$/g,"")]}));
+const T = env.TMAP_APP_KEY, K = env.KAKAO_REST_API_KEY;
+const body = JSON.stringify({startX:"127.2892431",startY:"36.6086266",endX:"127.2952359",endY:"36.6010014",reqCoordType:"WGS84GEO",resCoordType:"WGS84GEO"});
+const show = async (label, p) => { try { const r = await p; const t = await r.text(); console.log(label, r.status, t.slice(0,160).replace(/\s+/g," ")); } catch(e) { console.log(label, "ERR", e.message); } };
+await show("tmap header      ", fetch("https://apis.openapi.sk.com/tmap/routes?version=1&format=json",{method:"POST",headers:{appKey:T,"Content-Type":"application/json"},body}));
+await show("tmap query       ", fetch(`https://apis.openapi.sk.com/tmap/routes?version=1&format=json&appKey=${T}`,{method:"POST",headers:{"Content-Type":"application/json"},body}));
+await show("tmap geocode(GET)", fetch(`https://apis.openapi.sk.com/tmap/geo/reversegeocoding?version=1&lat=36.6086&lon=127.2892&appKey=${T}`));
+const q = "origin=127.2892431,36.6086266&destination=127.2952359,36.6010014";
+await show("kakao navi       ", fetch(`https://apis-navi.kakaomobility.com/v1/directions?${q}`,{headers:{Authorization:`KakaoAK ${K}`}}));
+await show("kakao local(REST)", fetch("https://dapi.kakao.com/v2/local/geo/coord2address.json?x=127.2892&y=36.6086",{headers:{Authorization:`KakaoAK ${K}`}}));
