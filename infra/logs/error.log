@@ -1,0 +1,228 @@
+===== [2026-09-25 23:31:35] dev (port 3000) =====
+[kakao] walk 경로 조회 실패: 카카오모빌리티는 공개 도보 길찾기 API를 제공하지 않습니다
+===== [2026-09-25 23:55:05] dev (port 3000) =====
+[tmap] car 경로 조회 실패: HTTP 403: {
+  "error": {
+    "id": "403",
+    "category": "gw",
+    "code": "INVALID_API_KEY",
+    "message": "Forbidden"
+  }
+}
+[kakao] car 경로 조회 실패: HTTP 401: {"code":-401,"msg":"KA Header is required but neither os nor origin field is given"}
+[tmap] walk 경로 조회 실패: HTTP 403: {
+  "error": {
+    "id": "403",
+    "category": "gw",
+    "code": "INVALID_API_KEY",
+    "message": "Forbidden"
+  }
+}
+[kakao] car 경로 조회 실패: HTTP 401: {"code":-401,"msg":"KA Header is required but neither os nor origin field is given"}
+[tmap] car 경로 조회 실패: HTTP 403: {
+  "error": {
+    "id": "403",
+    "category": "gw",
+    "code": "INVALID_API_KEY",
+    "message": "Forbidden"
+  }
+}
+[tmap] walk 경로 조회 실패: HTTP 403: {
+  "error": {
+    "id": "403",
+    "category": "gw",
+    "code": "INVALID_API_KEY",
+    "message": "Forbidden"
+  }
+}
+[kakao] car 경로 조회 실패: HTTP 401: {"code":-401,"msg":"KA Header is required but neither os nor origin field is given"}
+[tmap] car 경로 조회 실패: HTTP 403: {
+  "error": {
+    "id": "403",
+    "category": "gw",
+    "code": "INVALID_API_KEY",
+    "message": "Forbidden"
+  }
+}
+[tmap] walk 경로 조회 실패: HTTP 403: {
+  "error": {
+    "id": "403",
+    "category": "gw",
+    "code": "INVALID_API_KEY",
+    "message": "Forbidden"
+  }
+}
+[kakao] car 경로 조회 실패: HTTP 401: {"code":-401,"msg":"KA Header is required but neither os nor origin field is given"}
+[tmap] car 경로 조회 실패: HTTP 403: {
+  "error": {
+    "id": "403",
+    "category": "gw",
+    "code": "INVALID_API_KEY",
+    "message": "Forbidden"
+  }
+}
+[tmap] walk 경로 조회 실패: HTTP 403: {
+  "error": {
+    "id": "403",
+    "category": "gw",
+    "code": "INVALID_API_KEY",
+    "message": "Forbidden"
+  }
+}
+===== [2026-09-25 23:59:11] dev (port 3000) =====
+[kakao] car 경로 조회 실패: HTTP 401: {"code":-401,"msg":"KA Header is required but neither os nor origin field is given"}
+[tmap] car 경로 조회 실패: HTTP 403: {
+  "error": {
+    "id": "403",
+    "category": "gw",
+    "code": "INVALID_API_KEY",
+    "message": "Forbidden"
+  }
+}
+[tmap] walk 경로 조회 실패: HTTP 403: {
+  "error": {
+    "id": "403",
+    "category": "gw",
+    "code": "INVALID_API_KEY",
+    "message": "Forbidden"
+  }
+}
+===== [2026-09-26 00:02:21] dev (port 3000) =====
+[tmap] walk 경로 조회 실패: HTTP 403: {
+  "error": {
+    "id": "403",
+    "category": "gw",
+    "code": "INVALID_API_KEY",
+    "message": "Forbidden"
+  }
+}
+[tmap] car 경로 조회 실패: HTTP 403: {
+  "error": {
+    "id": "403",
+    "category": "gw",
+    "code": "INVALID_API_KEY",
+    "message": "Forbidden"
+  }
+}
+[kakao] car 경로 조회 실패: HTTP 401: {"code":-401,"msg":"KA Header is required but neither os nor origin field is given"}
+===== [2026-09-26 00:02:59] dev (port 3000) =====
+[tmap] car 경로 조회 실패: HTTP 403: {
+  "error": {
+    "id": "403",
+    "category": "gw",
+    "code": "INVALID_API_KEY",
+    "message": "Forbidden"
+  }
+}
+[tmap] walk 경로 조회 실패: HTTP 403: {
+  "error": {
+    "id": "403",
+    "category": "gw",
+    "code": "INVALID_API_KEY",
+    "message": "Forbidden"
+  }
+}
+[kakao] car 경로 조회 실패: HTTP 401: {"code":-401,"msg":"KA Header is required but neither os nor origin field is given"}
+===== [2026-09-26 00:09:22] dev (port 3000) =====
+⨯ unhandledRejection: Error: ENOENT: no such file or directory, scandir 'C:\Users\25융합인재센터-18\Documents\Github\DCCS309_C-1\src\app'
+    at ignore-listed frames {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'scandir',
+  path: 'C:\\Users\\25융합인재센터-18\\Documents\\Github\\DCCS309_C-1\\src\\app'
+}
+Error: ENOENT: no such file or directory, scandir 'C:\Users\25융합인재센터-18\Documents\Github\DCCS309_C-1\src\app'
+    at ignore-listed frames {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'scandir',
+  path: 'C:\\Users\\25융합인재센터-18\\Documents\\Github\\DCCS309_C-1\\src\\app'
+}
+Error: ENOENT: no such file or directory, scandir 'C:\Users\25융합인재센터-18\Documents\Github\DCCS309_C-1\src\app'
+    at ignore-listed frames {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'scandir',
+  path: 'C:\\Users\\25융합인재센터-18\\Documents\\Github\\DCCS309_C-1\\src\\app'
+}
+Error: ENOENT: no such file or directory, scandir 'C:\Users\25융합인재센터-18\Documents\Github\DCCS309_C-1\src\app'
+    at ignore-listed frames {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'scandir',
+  path: 'C:\\Users\\25융합인재센터-18\\Documents\\Github\\DCCS309_C-1\\src\\app'
+}
+Error: ENOENT: no such file or directory, scandir 'C:\Users\25융합인재센터-18\Documents\Github\DCCS309_C-1\src\app'
+    at ignore-listed frames {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'scandir',
+  path: 'C:\\Users\\25융합인재센터-18\\Documents\\Github\\DCCS309_C-1\\src\\app'
+}
+Error: ENOENT: no such file or directory, scandir 'C:\Users\25융합인재센터-18\Documents\Github\DCCS309_C-1\src\app'
+    at ignore-listed frames {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'scandir',
+  path: 'C:\\Users\\25융합인재센터-18\\Documents\\Github\\DCCS309_C-1\\src\\app'
+}
+Error: ENOENT: no such file or directory, scandir 'C:\Users\25융합인재센터-18\Documents\Github\DCCS309_C-1\src\app'
+    at ignore-listed frames {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'scandir',
+  path: 'C:\\Users\\25융합인재센터-18\\Documents\\Github\\DCCS309_C-1\\src\\app'
+}
+Error: ENOENT: no such file or directory, scandir 'C:\Users\25융합인재센터-18\Documents\Github\DCCS309_C-1\src\app'
+    at ignore-listed frames {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'scandir',
+  path: 'C:\\Users\\25융합인재센터-18\\Documents\\Github\\DCCS309_C-1\\src\\app'
+}
+Error: ENOENT: no such file or directory, scandir 'C:\Users\25융합인재센터-18\Documents\Github\DCCS309_C-1\src\app'
+    at ignore-listed frames {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'scandir',
+  path: 'C:\\Users\\25융합인재센터-18\\Documents\\Github\\DCCS309_C-1\\src\\app'
+}
+Error: ENOENT: no such file or directory, scandir 'C:\Users\25융합인재센터-18\Documents\Github\DCCS309_C-1\src\app'
+    at ignore-listed frames {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'scandir',
+  path: 'C:\\Users\\25융합인재센터-18\\Documents\\Github\\DCCS309_C-1\\src\\app'
+}
+Error: ENOENT: no such file or directory, scandir 'C:\Users\25융합인재센터-18\Documents\Github\DCCS309_C-1\src\app'
+    at ignore-listed frames {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'scandir',
+  path: 'C:\\Users\\25융합인재센터-18\\Documents\\Github\\DCCS309_C-1\\src\\app'
+}
+Error: ENOENT: no such file or directory, scandir 'C:\Users\25융합인재센터-18\Documents\Github\DCCS309_C-1\src\app'
+    at ignore-listed frames {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'scandir',
+  path: 'C:\\Users\\25융합인재센터-18\\Documents\\Github\\DCCS309_C-1\\src\\app'
+}
+Error: ENOENT: no such file or directory, scandir 'C:\Users\25융합인재센터-18\Documents\Github\DCCS309_C-1\src\app'
+    at ignore-listed frames {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'scandir',
+  path: 'C:\\Users\\25융합인재센터-18\\Documents\\Github\\DCCS309_C-1\\src\\app'
+}
+⚠ Found a change in next.config.ts. Restarting the server to apply the changes...
+⨯ unhandledRejection: Error: ENOENT: no such file or directory, scandir 'C:\Users\25융합인재센터-18\Documents\Github\DCCS309_C-1\src\app'
+    at ignore-listed frames {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'scandir',
+  path: 'C:\\Users\\25융합인재센터-18\\Documents\\Github\\DCCS309_C-1\\src\\app'
+}
+⚠ Found a change in next.config.ts. Restarting the server to apply the changes...
+===== [2026-09-26 01:30:44] dev (port 3000) =====
+===== [2026-09-26 01:39:28] dev (port 3000) =====
