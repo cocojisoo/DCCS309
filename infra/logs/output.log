@@ -211,3 +211,23 @@
 ✓ Ready in 388ms
 ✓ Running next.config.ts took 33ms
 
+===== [2026-09-26 23:08:54] dev (port 3000) =====
+▲ Next.js 16.3.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.219.130:3000
+- Environments: .env
+✓ Ready in 11.2s
+✓ Running next.config.ts took 497ms
+===== [2026-09-26 23:09:12] stopped =====
+===== [2026-09-26 23:09:18] dev (port 3000) =====
+▲ Next.js 16.3.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.219.130:3000
+- Environments: .env
+✓ Ready in 836ms
+✓ Running next.config.ts took 74ms
+
+ GET / 200 in 3.3s (next.js: 2.7s, application-code: 594ms)
+ GET /algorithms 200 in 889ms (next.js: 787ms, application-code: 102ms)
+ GET /algorithms 200 in 94ms (next.js: 20ms, application-code: 74ms)
+ GET /study 200 in 127ms (next.js: 78ms, application-code: 49ms)
