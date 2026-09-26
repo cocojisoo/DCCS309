@@ -1,0 +1,1390 @@
+{
+  "startedAt": "2026-09-26T13:41:21.486Z",
+  "finishedAt": "2026-09-26T13:59:24.091Z",
+  "environment": {
+    "node": "v24.16.0",
+    "platform": "win32 x64",
+    "gcBeforeEachRun": true
+  },
+  "config": {
+    "schema_version": 2,
+    "seed": 309,
+    "map": {
+      "center_lat": 36.61018,
+      "center_lon": 127.28571,
+      "bbox_half_width_m": 5000,
+      "network_type": "drive"
+    },
+    "size_ladder": {
+      "node_counts": [
+        10,
+        15,
+        20,
+        25,
+        30,
+        40,
+        50,
+        75,
+        100,
+        200
+      ],
+      "radius_m": [
+        500,
+        1000,
+        2000,
+        3000,
+        5000
+      ]
+    },
+    "track_fixed_od": {
+      "pairs_max": 5
+    },
+    "track_growing_od": {
+      "pairs_max": 10,
+      "straight_distance_ratio": [
+        0.4,
+        0.7
+      ]
+    },
+    "run": {
+      "repeats": 5,
+      "warmup": 1,
+      "dfs_time_limit_s": 2,
+      "shuffle_algorithm_order": true
+    },
+    "astar": {
+      "heuristic_scale": 0.999
+    },
+    "demo": {
+      "max_frames": 100,
+      "fixed_pairs": 1,
+      "growing_pairs": 2
+    }
+  },
+  "graph": {
+    "source": "© OpenStreetMap contributors (ODbL)",
+    "generatedAt": "2026-09-26T13:39:27.241Z",
+    "downloadedAt": null,
+    "osmTimestamp": "2026-07-24T11:04:51Z",
+    "osmSha256": "5085b222112173ec805fc782f78c04442d32b3bae208871da7fa4bc5d84862ca",
+    "center": [
+      36.61018,
+      127.28571
+    ],
+    "halfWidthM": 5000,
+    "bbox": [
+      36.565214,
+      127.229692,
+      36.655146,
+      127.341728
+    ],
+    "network": "drive",
+    "counts": {
+      "carWays": 3518,
+      "osmPoints": 24098,
+      "intersections": 4645,
+      "edgesBeforeCleanup": 11186,
+      "selfLoopsRemoved": 26,
+      "zeroLengthRemoved": 0,
+      "parallelRemoved": 95,
+      "edges": 11065
+    }
+  },
+  "ladder": [
+    {
+      "label": "n10",
+      "kind": "nodes",
+      "target": 10,
+      "cutNodes": 10,
+      "nodes": 10,
+      "edges": 16
+    },
+    {
+      "label": "n15",
+      "kind": "nodes",
+      "target": 15,
+      "cutNodes": 15,
+      "nodes": 15,
+      "edges": 26
+    },
+    {
+      "label": "n20",
+      "kind": "nodes",
+      "target": 20,
+      "cutNodes": 20,
+      "nodes": 20,
+      "edges": 38
+    },
+    {
+      "label": "n25",
+      "kind": "nodes",
+      "target": 25,
+      "cutNodes": 25,
+      "nodes": 25,
+      "edges": 48
+    },
+    {
+      "label": "n30",
+      "kind": "nodes",
+      "target": 30,
+      "cutNodes": 30,
+      "nodes": 30,
+      "edges": 60
+    },
+    {
+      "label": "n40",
+      "kind": "nodes",
+      "target": 40,
+      "cutNodes": 40,
+      "nodes": 40,
+      "edges": 86
+    },
+    {
+      "label": "n50",
+      "kind": "nodes",
+      "target": 50,
+      "cutNodes": 50,
+      "nodes": 50,
+      "edges": 114
+    },
+    {
+      "label": "n75",
+      "kind": "nodes",
+      "target": 75,
+      "cutNodes": 75,
+      "nodes": 73,
+      "edges": 174
+    },
+    {
+      "label": "n100",
+      "kind": "nodes",
+      "target": 100,
+      "cutNodes": 100,
+      "nodes": 96,
+      "edges": 224
+    },
+    {
+      "label": "n200",
+      "kind": "nodes",
+      "target": 200,
+      "cutNodes": 200,
+      "nodes": 192,
+      "edges": 458
+    },
+    {
+      "label": "r500",
+      "kind": "radius",
+      "target": 500,
+      "cutNodes": 89,
+      "nodes": 80,
+      "edges": 182
+    },
+    {
+      "label": "r1000",
+      "kind": "radius",
+      "target": 1000,
+      "cutNodes": 571,
+      "nodes": 552,
+      "edges": 1320
+    },
+    {
+      "label": "r2000",
+      "kind": "radius",
+      "target": 2000,
+      "cutNodes": 1656,
+      "nodes": 1573,
+      "edges": 3736
+    },
+    {
+      "label": "r3000",
+      "kind": "radius",
+      "target": 3000,
+      "cutNodes": 2556,
+      "nodes": 2455,
+      "edges": 5833
+    },
+    {
+      "label": "r5000",
+      "kind": "radius",
+      "target": 5000,
+      "cutNodes": 4138,
+      "nodes": 4006,
+      "edges": 9689
+    }
+  ],
+  "heuristic": {
+    "scale": 0.999,
+    "violations": 0,
+    "examples": []
+  },
+  "pairs": {
+    "track1": [
+      {
+        "id": "T1-1",
+        "track": 1,
+        "source": 4466,
+        "target": 2275,
+        "straightM": 174.1156624876693
+      },
+      {
+        "id": "T1-2",
+        "track": 1,
+        "source": 4465,
+        "target": 4466,
+        "straightM": 170.36184069364174
+      },
+      {
+        "id": "T1-3",
+        "track": 1,
+        "source": 848,
+        "target": 4465,
+        "straightM": 148.55834307365487
+      },
+      {
+        "id": "T1-4",
+        "track": 1,
+        "source": 846,
+        "target": 848,
+        "straightM": 20.60967632130336
+      },
+      {
+        "id": "T1-5",
+        "track": 1,
+        "source": 856,
+        "target": 848,
+        "straightM": 174.17710389636414
+      }
+    ],
+    "track2": {
+      "n10": {
+        "pairs": [
+          {
+            "id": "T2-n10-1",
+            "track": 2,
+            "source": 848,
+            "target": 4465,
+            "straightM": 148.55834307365487
+          },
+          {
+            "id": "T2-n10-2",
+            "track": 2,
+            "source": 846,
+            "target": 856,
+            "straightM": 180.8024026745666
+          },
+          {
+            "id": "T2-n10-3",
+            "track": 2,
+            "source": 849,
+            "target": 2584,
+            "straightM": 118.03031827226732
+          },
+          {
+            "id": "T2-n10-4",
+            "track": 2,
+            "source": 2585,
+            "target": 4466,
+            "straightM": 164.55441808536494
+          },
+          {
+            "id": "T2-n10-5",
+            "track": 2,
+            "source": 4466,
+            "target": 849,
+            "straightM": 129.11615050258783
+          },
+          {
+            "id": "T2-n10-6",
+            "track": 2,
+            "source": 4465,
+            "target": 856,
+            "straightM": 188.5089723539196
+          },
+          {
+            "id": "T2-n10-7",
+            "track": 2,
+            "source": 4465,
+            "target": 846,
+            "straightM": 132.1124917093092
+          },
+          {
+            "id": "T2-n10-8",
+            "track": 2,
+            "source": 846,
+            "target": 849,
+            "straightM": 138.40592126375515
+          },
+          {
+            "id": "T2-n10-9",
+            "track": 2,
+            "source": 4466,
+            "target": 2585,
+            "straightM": 164.55441808536494
+          },
+          {
+            "id": "T2-n10-10",
+            "track": 2,
+            "source": 2584,
+            "target": 4465,
+            "straightM": 179.28049372537404
+          }
+        ],
+        "diameterM": 274.7253887810559
+      },
+      "n15": {
+        "pairs": [
+          {
+            "id": "T2-n15-1",
+            "track": 2,
+            "source": 4465,
+            "target": 846,
+            "straightM": 132.1124917093092
+          },
+          {
+            "id": "T2-n15-2",
+            "track": 2,
+            "source": 849,
+            "target": 4466,
+            "straightM": 129.11615050258783
+          },
+          {
+            "id": "T2-n15-3",
+            "track": 2,
+            "source": 4466,
+            "target": 849,
+            "straightM": 129.11615050258783
+          },
+          {
+            "id": "T2-n15-4",
+            "track": 2,
+            "source": 846,
+            "target": 855,
+            "straightM": 182.23126252793844
+          },
+          {
+            "id": "T2-n15-5",
+            "track": 2,
+            "source": 848,
+            "target": 2274,
+            "straightM": 202.59095017538596
+          },
+          {
+            "id": "T2-n15-6",
+            "track": 2,
+            "source": 2585,
+            "target": 848,
+            "straightM": 168.08704926780496
+          },
+          {
+            "id": "T2-n15-7",
+            "track": 2,
+            "source": 848,
+            "target": 2585,
+            "straightM": 168.08704926780496
+          },
+          {
+            "id": "T2-n15-8",
+            "track": 2,
+            "source": 855,
+            "target": 4466,
+            "straightM": 163.63743594941434
+          },
+          {
+            "id": "T2-n15-9",
+            "track": 2,
+            "source": 4465,
+            "target": 2585,
+            "straightM": 175.12724423656024
+          },
+          {
+            "id": "T2-n15-10",
+            "track": 2,
+            "source": 849,
+            "target": 854,
+            "straightM": 130.5817520432495
+          }
+        ],
+        "diameterM": 318.2697138679331
+      },
+      "n20": {
+        "pairs": [
+          {
+            "id": "T2-n20-1",
+            "track": 2,
+            "source": 853,
+            "target": 848,
+            "straightM": 323.4828017165131
+          },
+          {
+            "id": "T2-n20-2",
+            "track": 2,
+            "source": 855,
+            "target": 876,
+            "straightM": 262.86801303656495
+          },
+          {
+            "id": "T2-n20-3",
+            "track": 2,
+            "source": 853,
+            "target": 878,
+            "straightM": 279.14384178493304
+          },
+          {
+            "id": "T2-n20-4",
+            "track": 2,
+            "source": 848,
+            "target": 853,
+            "straightM": 323.4828017165131
+          },
+          {
+            "id": "T2-n20-5",
+            "track": 2,
+            "source": 4466,
+            "target": 846,
+            "straightM": 267.52207167305073
+          },
+          {
+            "id": "T2-n20-6",
+            "track": 2,
+            "source": 4466,
+            "target": 1401,
+            "straightM": 282.8690674139406
+          },
+          {
+            "id": "T2-n20-7",
+            "track": 2,
+            "source": 856,
+            "target": 876,
+            "straightM": 252.4856786644816
+          },
+          {
+            "id": "T2-n20-8",
+            "track": 2,
+            "source": 876,
+            "target": 854,
+            "straightM": 320.17004098517526
+          },
+          {
+            "id": "T2-n20-9",
+            "track": 2,
+            "source": 1402,
+            "target": 4466,
+            "straightM": 249.37908389514143
+          },
+          {
+            "id": "T2-n20-10",
+            "track": 2,
+            "source": 852,
+            "target": 2585,
+            "straightM": 372.5702802452969
+          }
+        ],
+        "diameterM": 610.4684135243574
+      },
+      "n25": {
+        "pairs": [
+          {
+            "id": "T2-n25-1",
+            "track": 2,
+            "source": 845,
+            "target": 4466,
+            "straightM": 318.26971386793304
+          },
+          {
+            "id": "T2-n25-2",
+            "track": 2,
+            "source": 1401,
+            "target": 875,
+            "straightM": 317.3263673492162
+          },
+          {
+            "id": "T2-n25-3",
+            "track": 2,
+            "source": 4466,
+            "target": 874,
+            "straightM": 450.62597820583886
+          },
+          {
+            "id": "T2-n25-4",
+            "track": 2,
+            "source": 846,
+            "target": 869,
+            "straightM": 349.5268823444405
+          },
+          {
+            "id": "T2-n25-5",
+            "track": 2,
+            "source": 2584,
+            "target": 852,
+            "straightM": 420.42168654145263
+          },
+          {
+            "id": "T2-n25-6",
+            "track": 2,
+            "source": 1402,
+            "target": 852,
+            "straightM": 469.44039365932497
+          },
+          {
+            "id": "T2-n25-7",
+            "track": 2,
+            "source": 875,
+            "target": 2585,
+            "straightM": 359.48420757394183
+          },
+          {
+            "id": "T2-n25-8",
+            "track": 2,
+            "source": 877,
+            "target": 4466,
+            "straightM": 502.3925663728789
+          },
+          {
+            "id": "T2-n25-9",
+            "track": 2,
+            "source": 872,
+            "target": 2275,
+            "straightM": 326.38792632977675
+          },
+          {
+            "id": "T2-n25-10",
+            "track": 2,
+            "source": 869,
+            "target": 849,
+            "straightM": 445.7110600080465
+          }
+        ],
+        "diameterM": 737.2205663792741
+      },
+      "n30": {
+        "pairs": [
+          {
+            "id": "T2-n30-1",
+            "track": 2,
+            "source": 876,
+            "target": 4466,
+            "straightM": 423.0175012151023
+          },
+          {
+            "id": "T2-n30-2",
+            "track": 2,
+            "source": 877,
+            "target": 847,
+            "straightM": 453.76179498958714
+          },
+          {
+            "id": "T2-n30-3",
+            "track": 2,
+            "source": 2585,
+            "target": 844,
+            "straightM": 556.4926387378459
+          },
+          {
+            "id": "T2-n30-4",
+            "track": 2,
+            "source": 845,
+            "target": 877,
+            "straightM": 391.4188008939621
+          },
+          {
+            "id": "T2-n30-5",
+            "track": 2,
+            "source": 2585,
+            "target": 852,
+            "straightM": 372.5702802452969
+          },
+          {
+            "id": "T2-n30-6",
+            "track": 2,
+            "source": 855,
+            "target": 1785,
+            "straightM": 375.0113429350011
+          },
+          {
+            "id": "T2-n30-7",
+            "track": 2,
+            "source": 845,
+            "target": 852,
+            "straightM": 580.8899119451185
+          },
+          {
+            "id": "T2-n30-8",
+            "track": 2,
+            "source": 1401,
+            "target": 844,
+            "straightM": 403.1890864245704
+          },
+          {
+            "id": "T2-n30-9",
+            "track": 2,
+            "source": 1785,
+            "target": 846,
+            "straightM": 410.2588830163125
+          },
+          {
+            "id": "T2-n30-10",
+            "track": 2,
+            "source": 1402,
+            "target": 852,
+            "straightM": 469.44039365932497
+          }
+        ],
+        "diameterM": 928.9190314261843
+      },
+      "n40": {
+        "pairs": [
+          {
+            "id": "T2-n40-1",
+            "track": 2,
+            "source": 2266,
+            "target": 856,
+            "straightM": 432.40781498567753
+          },
+          {
+            "id": "T2-n40-2",
+            "track": 2,
+            "source": 2265,
+            "target": 2584,
+            "straightM": 414.38011236725976
+          },
+          {
+            "id": "T2-n40-3",
+            "track": 2,
+            "source": 856,
+            "target": 2265,
+            "straightM": 448.04031344977705
+          },
+          {
+            "id": "T2-n40-4",
+            "track": 2,
+            "source": 852,
+            "target": 874,
+            "straightM": 640.0284951288621
+          },
+          {
+            "id": "T2-n40-5",
+            "track": 2,
+            "source": 853,
+            "target": 2267,
+            "straightM": 552.5547123065484
+          },
+          {
+            "id": "T2-n40-6",
+            "track": 2,
+            "source": 847,
+            "target": 867,
+            "straightM": 503.90253049659395
+          },
+          {
+            "id": "T2-n40-7",
+            "track": 2,
+            "source": 853,
+            "target": 867,
+            "straightM": 627.0691539822724
+          },
+          {
+            "id": "T2-n40-8",
+            "track": 2,
+            "source": 869,
+            "target": 849,
+            "straightM": 445.7110600080465
+          },
+          {
+            "id": "T2-n40-9",
+            "track": 2,
+            "source": 854,
+            "target": 877,
+            "straightM": 385.0637523741681
+          },
+          {
+            "id": "T2-n40-10",
+            "track": 2,
+            "source": 846,
+            "target": 1790,
+            "straightM": 439.2003432078626
+          }
+        ],
+        "diameterM": 928.9190314261843
+      },
+      "n50": {
+        "pairs": [
+          {
+            "id": "T2-n50-1",
+            "track": 2,
+            "source": 4466,
+            "target": 874,
+            "straightM": 450.62597820583886
+          },
+          {
+            "id": "T2-n50-2",
+            "track": 2,
+            "source": 871,
+            "target": 846,
+            "straightM": 424.29828349534375
+          },
+          {
+            "id": "T2-n50-3",
+            "track": 2,
+            "source": 848,
+            "target": 1134,
+            "straightM": 499.49368547103944
+          },
+          {
+            "id": "T2-n50-4",
+            "track": 2,
+            "source": 1134,
+            "target": 4465,
+            "straightM": 616.2953702263957
+          },
+          {
+            "id": "T2-n50-5",
+            "track": 2,
+            "source": 852,
+            "target": 878,
+            "straightM": 486.1460998579157
+          },
+          {
+            "id": "T2-n50-6",
+            "track": 2,
+            "source": 2274,
+            "target": 871,
+            "straightM": 394.16374936812247
+          },
+          {
+            "id": "T2-n50-7",
+            "track": 2,
+            "source": 852,
+            "target": 4465,
+            "straightM": 441.20413324732436
+          },
+          {
+            "id": "T2-n50-8",
+            "track": 2,
+            "source": 847,
+            "target": 1787,
+            "straightM": 516.803143399808
+          },
+          {
+            "id": "T2-n50-9",
+            "track": 2,
+            "source": 846,
+            "target": 1789,
+            "straightM": 452.5166519154554
+          },
+          {
+            "id": "T2-n50-10",
+            "track": 2,
+            "source": 867,
+            "target": 1402,
+            "straightM": 382.82381133669463
+          }
+        ],
+        "diameterM": 928.9190314261843
+      },
+      "n75": {
+        "pairs": [
+          {
+            "id": "T2-n75-1",
+            "track": 2,
+            "source": 857,
+            "target": 1774,
+            "straightM": 445.276122805469
+          },
+          {
+            "id": "T2-n75-2",
+            "track": 2,
+            "source": 1131,
+            "target": 878,
+            "straightM": 416.9593048428646
+          },
+          {
+            "id": "T2-n75-3",
+            "track": 2,
+            "source": 845,
+            "target": 1134,
+            "straightM": 549.01061824861
+          },
+          {
+            "id": "T2-n75-4",
+            "track": 2,
+            "source": 2272,
+            "target": 2584,
+            "straightM": 442.4349240272339
+          },
+          {
+            "id": "T2-n75-5",
+            "track": 2,
+            "source": 1135,
+            "target": 1402,
+            "straightM": 446.2903488075234
+          },
+          {
+            "id": "T2-n75-6",
+            "track": 2,
+            "source": 2268,
+            "target": 845,
+            "straightM": 491.0935086055925
+          },
+          {
+            "id": "T2-n75-7",
+            "track": 2,
+            "source": 2584,
+            "target": 1134,
+            "straightM": 443.1132662658976
+          },
+          {
+            "id": "T2-n75-8",
+            "track": 2,
+            "source": 1858,
+            "target": 2724,
+            "straightM": 388.65027489888763
+          },
+          {
+            "id": "T2-n75-9",
+            "track": 2,
+            "source": 870,
+            "target": 1134,
+            "straightM": 375.33784527681263
+          },
+          {
+            "id": "T2-n75-10",
+            "track": 2,
+            "source": 2268,
+            "target": 853,
+            "straightM": 624.1121502048918
+          }
+        ],
+        "diameterM": 931.0406536020373
+      },
+      "n100": {
+        "pairs": [
+          {
+            "id": "T2-n100-1",
+            "track": 2,
+            "source": 3610,
+            "target": 3632,
+            "straightM": 580.3386679082658
+          },
+          {
+            "id": "T2-n100-2",
+            "track": 2,
+            "source": 848,
+            "target": 1133,
+            "straightM": 451.70346997459353
+          },
+          {
+            "id": "T2-n100-3",
+            "track": 2,
+            "source": 865,
+            "target": 853,
+            "straightM": 663.952553747376
+          },
+          {
+            "id": "T2-n100-4",
+            "track": 2,
+            "source": 4466,
+            "target": 859,
+            "straightM": 422.6881135594509
+          },
+          {
+            "id": "T2-n100-5",
+            "track": 2,
+            "source": 2585,
+            "target": 3633,
+            "straightM": 555.4123978706529
+          },
+          {
+            "id": "T2-n100-6",
+            "track": 2,
+            "source": 1605,
+            "target": 874,
+            "straightM": 434.4786430420483
+          },
+          {
+            "id": "T2-n100-7",
+            "track": 2,
+            "source": 3632,
+            "target": 1126,
+            "straightM": 530.4965847742766
+          },
+          {
+            "id": "T2-n100-8",
+            "track": 2,
+            "source": 323,
+            "target": 3619,
+            "straightM": 496.0890956366922
+          },
+          {
+            "id": "T2-n100-9",
+            "track": 2,
+            "source": 865,
+            "target": 3610,
+            "straightM": 515.1503950123827
+          },
+          {
+            "id": "T2-n100-10",
+            "track": 2,
+            "source": 853,
+            "target": 1788,
+            "straightM": 436.19691949582653
+          }
+        ],
+        "diameterM": 1013.0119874546579
+      },
+      "n200": {
+        "pairs": [
+          {
+            "id": "T2-n200-1",
+            "track": 2,
+            "source": 1585,
+            "target": 1777,
+            "straightM": 592.75699542195
+          },
+          {
+            "id": "T2-n200-2",
+            "track": 2,
+            "source": 3646,
+            "target": 866,
+            "straightM": 703.4899116510317
+          },
+          {
+            "id": "T2-n200-3",
+            "track": 2,
+            "source": 1124,
+            "target": 334,
+            "straightM": 659.4085576070067
+          },
+          {
+            "id": "T2-n200-4",
+            "track": 2,
+            "source": 330,
+            "target": 2584,
+            "straightM": 620.8147204690565
+          },
+          {
+            "id": "T2-n200-5",
+            "track": 2,
+            "source": 1767,
+            "target": 4599,
+            "straightM": 449.20244947878217
+          },
+          {
+            "id": "T2-n200-6",
+            "track": 2,
+            "source": 3611,
+            "target": 3697,
+            "straightM": 494.0495344350219
+          },
+          {
+            "id": "T2-n200-7",
+            "track": 2,
+            "source": 2242,
+            "target": 3817,
+            "straightM": 729.7781210297403
+          },
+          {
+            "id": "T2-n200-8",
+            "track": 2,
+            "source": 846,
+            "target": 1132,
+            "straightM": 526.8266106910888
+          },
+          {
+            "id": "T2-n200-9",
+            "track": 2,
+            "source": 306,
+            "target": 1778,
+            "straightM": 647.374107709983
+          },
+          {
+            "id": "T2-n200-10",
+            "track": 2,
+            "source": 3614,
+            "target": 870,
+            "straightM": 578.3413188153809
+          }
+        ],
+        "diameterM": 1076.326714707876
+      },
+      "r500": {
+        "pairs": [
+          {
+            "id": "T2-r500-1",
+            "track": 2,
+            "source": 2250,
+            "target": 1125,
+            "straightM": 406.70515475049467
+          },
+          {
+            "id": "T2-r500-2",
+            "track": 2,
+            "source": 4151,
+            "target": 869,
+            "straightM": 430.12181510679227
+          },
+          {
+            "id": "T2-r500-3",
+            "track": 2,
+            "source": 845,
+            "target": 853,
+            "straightM": 381.4350891041197
+          },
+          {
+            "id": "T2-r500-4",
+            "track": 2,
+            "source": 869,
+            "target": 2584,
+            "straightM": 345.09643634882303
+          },
+          {
+            "id": "T2-r500-5",
+            "track": 2,
+            "source": 1123,
+            "target": 861,
+            "straightM": 413.21798974080195
+          },
+          {
+            "id": "T2-r500-6",
+            "track": 2,
+            "source": 862,
+            "target": 1123,
+            "straightM": 403.8720919224772
+          },
+          {
+            "id": "T2-r500-7",
+            "track": 2,
+            "source": 2256,
+            "target": 877,
+            "straightM": 376.78147591992445
+          },
+          {
+            "id": "T2-r500-8",
+            "track": 2,
+            "source": 2262,
+            "target": 876,
+            "straightM": 409.8636350765222
+          },
+          {
+            "id": "T2-r500-9",
+            "track": 2,
+            "source": 2236,
+            "target": 875,
+            "straightM": 330.25697331968075
+          },
+          {
+            "id": "T2-r500-10",
+            "track": 2,
+            "source": 1119,
+            "target": 856,
+            "straightM": 378.0307655592558
+          }
+        ],
+        "diameterM": 789.668632769819
+      },
+      "r1000": {
+        "pairs": [
+          {
+            "id": "T2-r1000-1",
+            "track": 2,
+            "source": 2246,
+            "target": 1505,
+            "straightM": 898.7334917256043
+          },
+          {
+            "id": "T2-r1000-2",
+            "track": 2,
+            "source": 2102,
+            "target": 1612,
+            "straightM": 952.3289282463976
+          },
+          {
+            "id": "T2-r1000-3",
+            "track": 2,
+            "source": 231,
+            "target": 3662,
+            "straightM": 1287.2957721667794
+          },
+          {
+            "id": "T2-r1000-4",
+            "track": 2,
+            "source": 433,
+            "target": 1099,
+            "straightM": 998.113869147805
+          },
+          {
+            "id": "T2-r1000-5",
+            "track": 2,
+            "source": 1518,
+            "target": 876,
+            "straightM": 952.0725293234873
+          },
+          {
+            "id": "T2-r1000-6",
+            "track": 2,
+            "source": 2276,
+            "target": 875,
+            "straightM": 1113.2472997349796
+          },
+          {
+            "id": "T2-r1000-7",
+            "track": 2,
+            "source": 4483,
+            "target": 3581,
+            "straightM": 1068.0738303495964
+          },
+          {
+            "id": "T2-r1000-8",
+            "track": 2,
+            "source": 3648,
+            "target": 1642,
+            "straightM": 1246.9537951592426
+          },
+          {
+            "id": "T2-r1000-9",
+            "track": 2,
+            "source": 2260,
+            "target": 1622,
+            "straightM": 833.7592680402001
+          },
+          {
+            "id": "T2-r1000-10",
+            "track": 2,
+            "source": 1645,
+            "target": 1122,
+            "straightM": 965.4343399872031
+          }
+        ],
+        "diameterM": 1989.2221406991462
+      },
+      "r2000": {
+        "pairs": [
+          {
+            "id": "T2-r2000-1",
+            "track": 2,
+            "source": 4178,
+            "target": 2860,
+            "straightM": 1605.8890032774448
+          },
+          {
+            "id": "T2-r2000-2",
+            "track": 2,
+            "source": 662,
+            "target": 4183,
+            "straightM": 2439.3821263595046
+          },
+          {
+            "id": "T2-r2000-3",
+            "track": 2,
+            "source": 673,
+            "target": 4604,
+            "straightM": 2657.4291494143404
+          },
+          {
+            "id": "T2-r2000-4",
+            "track": 2,
+            "source": 642,
+            "target": 325,
+            "straightM": 1726.9417918261215
+          },
+          {
+            "id": "T2-r2000-5",
+            "track": 2,
+            "source": 341,
+            "target": 2843,
+            "straightM": 1732.011518841849
+          },
+          {
+            "id": "T2-r2000-6",
+            "track": 2,
+            "source": 3688,
+            "target": 1714,
+            "straightM": 1684.4969133182444
+          },
+          {
+            "id": "T2-r2000-7",
+            "track": 2,
+            "source": 4484,
+            "target": 3102,
+            "straightM": 2202.3424142956305
+          },
+          {
+            "id": "T2-r2000-8",
+            "track": 2,
+            "source": 725,
+            "target": 2064,
+            "straightM": 2065.170671262293
+          },
+          {
+            "id": "T2-r2000-9",
+            "track": 2,
+            "source": 1555,
+            "target": 3616,
+            "straightM": 1870.1619754184283
+          },
+          {
+            "id": "T2-r2000-10",
+            "track": 2,
+            "source": 1521,
+            "target": 1047,
+            "straightM": 1928.186977887968
+          }
+        ],
+        "diameterM": 3991.6527654649576
+      },
+      "r3000": {
+        "pairs": [
+          {
+            "id": "T2-r3000-1",
+            "track": 2,
+            "source": 2399,
+            "target": 2106,
+            "straightM": 3043.250694509059
+          },
+          {
+            "id": "T2-r3000-2",
+            "track": 2,
+            "source": 656,
+            "target": 532,
+            "straightM": 2618.776417316563
+          },
+          {
+            "id": "T2-r3000-3",
+            "track": 2,
+            "source": 3300,
+            "target": 4305,
+            "straightM": 3123.987091046992
+          },
+          {
+            "id": "T2-r3000-4",
+            "track": 2,
+            "source": 1539,
+            "target": 1046,
+            "straightM": 3383.8911120813164
+          },
+          {
+            "id": "T2-r3000-5",
+            "track": 2,
+            "source": 2658,
+            "target": 2925,
+            "straightM": 2683.693616952423
+          },
+          {
+            "id": "T2-r3000-6",
+            "track": 2,
+            "source": 484,
+            "target": 3813,
+            "straightM": 3383.2292089960097
+          },
+          {
+            "id": "T2-r3000-7",
+            "track": 2,
+            "source": 3794,
+            "target": 3181,
+            "straightM": 3745.6245889145293
+          },
+          {
+            "id": "T2-r3000-8",
+            "track": 2,
+            "source": 694,
+            "target": 1736,
+            "straightM": 3784.476460010449
+          },
+          {
+            "id": "T2-r3000-9",
+            "track": 2,
+            "source": 1513,
+            "target": 2448,
+            "straightM": 2827.142214155661
+          },
+          {
+            "id": "T2-r3000-10",
+            "track": 2,
+            "source": 703,
+            "target": 1110,
+            "straightM": 2988.620962483694
+          }
+        ],
+        "diameterM": 5975.944001311824
+      },
+      "r5000": {
+        "pairs": [
+          {
+            "id": "T2-r5000-1",
+            "track": 2,
+            "source": 71,
+            "target": 1003,
+            "straightM": 4404.548151801731
+          },
+          {
+            "id": "T2-r5000-2",
+            "track": 2,
+            "source": 3497,
+            "target": 4318,
+            "straightM": 6638.733866538788
+          },
+          {
+            "id": "T2-r5000-3",
+            "track": 2,
+            "source": 2463,
+            "target": 1361,
+            "straightM": 5361.040424283315
+          },
+          {
+            "id": "T2-r5000-4",
+            "track": 2,
+            "source": 609,
+            "target": 3922,
+            "straightM": 4102.126717531723
+          },
+          {
+            "id": "T2-r5000-5",
+            "track": 2,
+            "source": 3720,
+            "target": 1746,
+            "straightM": 5268.782532233283
+          },
+          {
+            "id": "T2-r5000-6",
+            "track": 2,
+            "source": 956,
+            "target": 1298,
+            "straightM": 4508.126021614793
+          },
+          {
+            "id": "T2-r5000-7",
+            "track": 2,
+            "source": 3565,
+            "target": 2038,
+            "straightM": 4657.286509967304
+          },
+          {
+            "id": "T2-r5000-8",
+            "track": 2,
+            "source": 1326,
+            "target": 2773,
+            "straightM": 5934.83006106335
+          },
+          {
+            "id": "T2-r5000-9",
+            "track": 2,
+            "source": 299,
+            "target": 131,
+            "straightM": 4973.016382006048
+          },
+          {
+            "id": "T2-r5000-10",
+            "track": 2,
+            "source": 1726,
+            "target": 2162,
+            "straightM": 5576.654263422343
+          }
+        ],
+        "diameterM": 9963.159852473047
+      }
+    }
+  },
+  "log": {
+    "excluded": [],
+    "mismatches": []
+  }
+}

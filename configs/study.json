@@ -1,0 +1,35 @@
+{
+  "schema_version": 2,
+  "seed": 309,
+  "map": {
+    "center_lat": 36.61018,
+    "center_lon": 127.28571,
+    "bbox_half_width_m": 5000,
+    "network_type": "drive"
+  },
+  "size_ladder": {
+    "node_counts": [10, 15, 20, 25, 30, 40, 50, 75, 100, 200],
+    "radius_m": [500, 1000, 2000, 3000, 5000]
+  },
+  "track_fixed_od": {
+    "pairs_max": 5
+  },
+  "track_growing_od": {
+    "pairs_max": 10,
+    "straight_distance_ratio": [0.4, 0.7]
+  },
+  "run": {
+    "repeats": 5,
+    "warmup": 1,
+    "dfs_time_limit_s": 2.0,
+    "shuffle_algorithm_order": true
+  },
+  "astar": {
+    "heuristic_scale": 0.999
+  },
+  "demo": {
+    "max_frames": 100,
+    "fixed_pairs": 1,
+    "growing_pairs": 2
+  }
+}

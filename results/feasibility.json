@@ -1,0 +1,802 @@
+{
+  "checkedAt": "2026-09-26T13:40:25.826Z",
+  "node": "v24.16.0",
+  "config": {
+    "schema_version": 2,
+    "seed": 309,
+    "map": {
+      "center_lat": 36.61018,
+      "center_lon": 127.28571,
+      "bbox_half_width_m": 5000,
+      "network_type": "drive"
+    },
+    "size_ladder": {
+      "node_counts": [
+        10,
+        15,
+        20,
+        25,
+        30,
+        40,
+        50,
+        75,
+        100,
+        200
+      ],
+      "radius_m": [
+        500,
+        1000,
+        2000,
+        3000,
+        5000
+      ]
+    },
+    "track_fixed_od": {
+      "pairs_max": 5
+    },
+    "track_growing_od": {
+      "pairs_max": 10,
+      "straight_distance_ratio": [
+        0.4,
+        0.7
+      ]
+    },
+    "run": {
+      "repeats": 5,
+      "warmup": 1,
+      "dfs_time_limit_s": 2,
+      "shuffle_algorithm_order": true
+    },
+    "astar": {
+      "heuristic_scale": 0.999
+    },
+    "demo": {
+      "max_frames": 100,
+      "fixed_pairs": 1,
+      "growing_pairs": 2
+    }
+  },
+  "graph": {
+    "nodes": 4645,
+    "edges": 11065,
+    "osmTimestamp": "2026-07-24T11:04:51Z",
+    "osmSha256": "5085b222112173ec805fc782f78c04442d32b3bae208871da7fa4bc5d84862ca"
+  },
+  "center": {
+    "lat": 36.6104341,
+    "lng": 127.286243,
+    "toJochiwonStationM": 1320.797020676326
+  },
+  "heuristic": {
+    "scale": 0.999,
+    "violations": 0,
+    "examples": []
+  },
+  "sizes": [
+    {
+      "label": "n10",
+      "kind": "nodes",
+      "target": 10,
+      "cutNodes": 10,
+      "nodes": 10,
+      "edges": 16,
+      "track2Pairs": 10,
+      "diameterM": 274.7253887810559,
+      "track1": {
+        "dfs": {
+          "status": "SUCCESS",
+          "ms": 0.19249999999999545,
+          "visits": 9,
+          "unique": 9,
+          "lengthM": 264.98997155786725
+        },
+        "dijkstra": {
+          "ms": 0.151299999999992,
+          "visits": 7,
+          "lengthM": 264.98997155786725
+        },
+        "astar": {
+          "ms": 0.19460000000000832,
+          "visits": 6,
+          "lengthM": 264.98997155786725
+        }
+      },
+      "track2": {
+        "dfs": {
+          "status": "SUCCESS",
+          "ms": 0.028399999999976444,
+          "visits": 10,
+          "unique": 10,
+          "lengthM": 250.98991240927919
+        },
+        "dijkstra": {
+          "ms": 0.023200000000002774,
+          "visits": 4,
+          "lengthM": 250.98991240927919
+        },
+        "astar": {
+          "ms": 0.011000000000024102,
+          "visits": 4,
+          "lengthM": 250.98991240927919
+        }
+      }
+    },
+    {
+      "label": "n15",
+      "kind": "nodes",
+      "target": 15,
+      "cutNodes": 15,
+      "nodes": 15,
+      "edges": 26,
+      "track2Pairs": 10,
+      "diameterM": 318.2697138679331,
+      "track1": {
+        "dfs": {
+          "status": "SUCCESS",
+          "ms": 0.02410000000000423,
+          "visits": 13,
+          "unique": 13,
+          "lengthM": 264.98997155786725
+        },
+        "dijkstra": {
+          "ms": 0.013400000000018508,
+          "visits": 7,
+          "lengthM": 264.98997155786725
+        },
+        "astar": {
+          "ms": 0.010300000000000864,
+          "visits": 6,
+          "lengthM": 264.98997155786725
+        }
+      },
+      "track2": {
+        "dfs": {
+          "status": "SUCCESS",
+          "ms": 0.009500000000002728,
+          "visits": 12,
+          "unique": 12,
+          "lengthM": 230.37051892792869
+        },
+        "dijkstra": {
+          "ms": 0.010099999999994225,
+          "visits": 8,
+          "lengthM": 230.37051892792869
+        },
+        "astar": {
+          "ms": 0.004800000000017235,
+          "visits": 3,
+          "lengthM": 230.37051892792869
+        }
+      }
+    },
+    {
+      "label": "n20",
+      "kind": "nodes",
+      "target": 20,
+      "cutNodes": 20,
+      "nodes": 20,
+      "edges": 38,
+      "track2Pairs": 10,
+      "diameterM": 610.4684135243574,
+      "track1": {
+        "dfs": {
+          "status": "SUCCESS",
+          "ms": 0.019400000000018736,
+          "visits": 21,
+          "unique": 20,
+          "lengthM": 264.98997155786725
+        },
+        "dijkstra": {
+          "ms": 0.01279999999999859,
+          "visits": 7,
+          "lengthM": 264.98997155786725
+        },
+        "astar": {
+          "ms": 0.010500000000007503,
+          "visits": 6,
+          "lengthM": 264.98997155786725
+        }
+      },
+      "track2": {
+        "dfs": {
+          "status": "SUCCESS",
+          "ms": 0.00889999999998281,
+          "visits": 20,
+          "unique": 19,
+          "lengthM": 381.5106359403384
+        },
+        "dijkstra": {
+          "ms": 0.010800000000017462,
+          "visits": 13,
+          "lengthM": 381.5106359403384
+        },
+        "astar": {
+          "ms": 0.010699999999985721,
+          "visits": 10,
+          "lengthM": 381.5106359403384
+        }
+      }
+    },
+    {
+      "label": "n25",
+      "kind": "nodes",
+      "target": 25,
+      "cutNodes": 25,
+      "nodes": 25,
+      "edges": 48,
+      "track2Pairs": 10,
+      "diameterM": 737.2205663792741,
+      "track1": {
+        "dfs": {
+          "status": "SUCCESS",
+          "ms": 0.020600000000001728,
+          "visits": 26,
+          "unique": 25,
+          "lengthM": 264.98997155786725
+        },
+        "dijkstra": {
+          "ms": 0.010099999999994225,
+          "visits": 7,
+          "lengthM": 264.98997155786725
+        },
+        "astar": {
+          "ms": 0.0075000000000216005,
+          "visits": 6,
+          "lengthM": 264.98997155786725
+        }
+      },
+      "track2": {
+        "dfs": {
+          "status": "SUCCESS",
+          "ms": 0.012599999999991951,
+          "visits": 47,
+          "unique": 25,
+          "lengthM": 329.95401288357107
+        },
+        "dijkstra": {
+          "ms": 0.011400000000008959,
+          "visits": 15,
+          "lengthM": 329.95401288357107
+        },
+        "astar": {
+          "ms": 0.004700000000013915,
+          "visits": 4,
+          "lengthM": 329.95401288357107
+        }
+      }
+    },
+    {
+      "label": "n30",
+      "kind": "nodes",
+      "target": 30,
+      "cutNodes": 30,
+      "nodes": 30,
+      "edges": 60,
+      "track2Pairs": 10,
+      "diameterM": 928.9190314261843,
+      "track1": {
+        "dfs": {
+          "status": "SUCCESS",
+          "ms": 0.019099999999980355,
+          "visits": 40,
+          "unique": 30,
+          "lengthM": 264.98997155786725
+        },
+        "dijkstra": {
+          "ms": 0.01120000000000232,
+          "visits": 7,
+          "lengthM": 264.98997155786725
+        },
+        "astar": {
+          "ms": 0.021199999999993224,
+          "visits": 6,
+          "lengthM": 264.98997155786725
+        }
+      },
+      "track2": {
+        "dfs": {
+          "status": "SUCCESS",
+          "ms": 0.015199999999992997,
+          "visits": 58,
+          "unique": 30,
+          "lengthM": 584.5839740533917
+        },
+        "dijkstra": {
+          "ms": 0.024799999999999045,
+          "visits": 28,
+          "lengthM": 584.5839740533917
+        },
+        "astar": {
+          "ms": 0.015099999999989677,
+          "visits": 15,
+          "lengthM": 584.5839740533917
+        }
+      }
+    },
+    {
+      "label": "n40",
+      "kind": "nodes",
+      "target": 40,
+      "cutNodes": 40,
+      "nodes": 40,
+      "edges": 86,
+      "track2Pairs": 10,
+      "diameterM": 928.9190314261843,
+      "track1": {
+        "dfs": {
+          "status": "SUCCESS",
+          "ms": 0.04059999999998354,
+          "visits": 144,
+          "unique": 40,
+          "lengthM": 264.98997155786725
+        },
+        "dijkstra": {
+          "ms": 0.010700000000014143,
+          "visits": 7,
+          "lengthM": 264.98997155786725
+        },
+        "astar": {
+          "ms": 0.007399999999989859,
+          "visits": 6,
+          "lengthM": 264.98997155786725
+        }
+      },
+      "track2": {
+        "dfs": {
+          "status": "SUCCESS",
+          "ms": 0.09999999999999432,
+          "visits": 375,
+          "unique": 39,
+          "lengthM": 584.956933508554
+        },
+        "dijkstra": {
+          "ms": 0.01979999999997517,
+          "visits": 30,
+          "lengthM": 584.956933508554
+        },
+        "astar": {
+          "ms": 0.017099999999999227,
+          "visits": 21,
+          "lengthM": 584.956933508554
+        }
+      }
+    },
+    {
+      "label": "n50",
+      "kind": "nodes",
+      "target": 50,
+      "cutNodes": 50,
+      "nodes": 50,
+      "edges": 114,
+      "track2Pairs": 10,
+      "diameterM": 928.9190314261843,
+      "track1": {
+        "dfs": {
+          "status": "SUCCESS",
+          "ms": 0.23749999999998295,
+          "visits": 1078,
+          "unique": 50,
+          "lengthM": 264.98997155786725
+        },
+        "dijkstra": {
+          "ms": 0.012599999999991951,
+          "visits": 7,
+          "lengthM": 264.98997155786725
+        },
+        "astar": {
+          "ms": 0.0072999999999865395,
+          "visits": 6,
+          "lengthM": 264.98997155786725
+        }
+      },
+      "track2": {
+        "dfs": {
+          "status": "SUCCESS",
+          "ms": 0.17270000000002028,
+          "visits": 861,
+          "unique": 45,
+          "lengthM": 636.4846492123975
+        },
+        "dijkstra": {
+          "ms": 0.013099999999980128,
+          "visits": 21,
+          "lengthM": 636.4846492123975
+        },
+        "astar": {
+          "ms": 0.013499999999993406,
+          "visits": 17,
+          "lengthM": 636.4846492123975
+        }
+      }
+    },
+    {
+      "label": "n75",
+      "kind": "nodes",
+      "target": 75,
+      "cutNodes": 75,
+      "nodes": 73,
+      "edges": 174,
+      "track2Pairs": 10,
+      "diameterM": 931.0406536020373,
+      "track1": {
+        "dfs": {
+          "status": "SUCCESS",
+          "ms": 13.968999999999994,
+          "visits": 475175,
+          "unique": 73,
+          "lengthM": 264.98997155786725
+        },
+        "dijkstra": {
+          "ms": 0.035799999999994725,
+          "visits": 7,
+          "lengthM": 264.98997155786725
+        },
+        "astar": {
+          "ms": 0.008299999999991314,
+          "visits": 6,
+          "lengthM": 264.98997155786725
+        }
+      },
+      "track2": {
+        "dfs": {
+          "status": "SUCCESS",
+          "ms": 30.71010000000001,
+          "visits": 1248609,
+          "unique": 73,
+          "lengthM": 508.30577529591613
+        },
+        "dijkstra": {
+          "ms": 0.12190000000001078,
+          "visits": 56,
+          "lengthM": 508.30577529591613
+        },
+        "astar": {
+          "ms": 0.020799999999979946,
+          "visits": 17,
+          "lengthM": 508.30577529591613
+        }
+      }
+    },
+    {
+      "label": "n100",
+      "kind": "nodes",
+      "target": 100,
+      "cutNodes": 100,
+      "nodes": 96,
+      "edges": 224,
+      "track2Pairs": 10,
+      "diameterM": 1013.0119874546579,
+      "track1": {
+        "dfs": {
+          "status": "SUCCESS",
+          "ms": 426.9698000000001,
+          "visits": 18271064,
+          "unique": 96,
+          "lengthM": 264.98997155786725
+        },
+        "dijkstra": {
+          "ms": 0.05340000000001055,
+          "visits": 7,
+          "lengthM": 264.98997155786725
+        },
+        "astar": {
+          "ms": 0.07209999999997763,
+          "visits": 6,
+          "lengthM": 264.98997155786725
+        }
+      },
+      "track2": {
+        "dfs": {
+          "status": "SUCCESS",
+          "ms": 60.74459999999999,
+          "visits": 2570379,
+          "unique": 88,
+          "lengthM": 677.4351387949224
+        },
+        "dijkstra": {
+          "ms": 0.24139999999999873,
+          "visits": 64,
+          "lengthM": 677.4351387949224
+        },
+        "astar": {
+          "ms": 0.2545999999999822,
+          "visits": 25,
+          "lengthM": 677.4351387949224
+        }
+      }
+    },
+    {
+      "label": "n200",
+      "kind": "nodes",
+      "target": 200,
+      "cutNodes": 200,
+      "nodes": 192,
+      "edges": 458,
+      "track2Pairs": 10,
+      "diameterM": 1076.326714707876,
+      "track1": {
+        "dfs": {
+          "status": "TIMEOUT",
+          "ms": 2000.0209000000002,
+          "visits": 80280000,
+          "unique": 158,
+          "lengthM": null
+        },
+        "dijkstra": {
+          "ms": 0.05040000000008149,
+          "visits": 7,
+          "lengthM": 264.98997155786725
+        },
+        "astar": {
+          "ms": 0.00830000000041764,
+          "visits": 6,
+          "lengthM": 264.98997155786725
+        }
+      },
+      "track2": {
+        "dfs": {
+          "status": "TIMEOUT",
+          "ms": 2000.0290999999997,
+          "visits": 85981000,
+          "unique": 165,
+          "lengthM": null
+        },
+        "dijkstra": {
+          "ms": 0.10100000000056752,
+          "visits": 101,
+          "lengthM": 743.5129342925914
+        },
+        "astar": {
+          "ms": 0.07660000000032596,
+          "visits": 33,
+          "lengthM": 743.5129342925914
+        }
+      }
+    },
+    {
+      "label": "r500",
+      "kind": "radius",
+      "target": 500,
+      "cutNodes": 89,
+      "nodes": 80,
+      "edges": 182,
+      "track2Pairs": 10,
+      "diameterM": 789.668632769819,
+      "track1": {
+        "dfs": {
+          "status": "SUCCESS",
+          "ms": 0.19400000000041473,
+          "visits": 7871,
+          "unique": 80,
+          "lengthM": 264.98997155786725
+        },
+        "dijkstra": {
+          "ms": 0.009700000000520959,
+          "visits": 7,
+          "lengthM": 264.98997155786725
+        },
+        "astar": {
+          "ms": 0.006100000000515138,
+          "visits": 6,
+          "lengthM": 264.98997155786725
+        }
+      },
+      "track2": {
+        "dfs": {
+          "status": "SUCCESS",
+          "ms": 0.23170000000027358,
+          "visits": 10551,
+          "unique": 41,
+          "lengthM": 531.450717338042
+        },
+        "dijkstra": {
+          "ms": 0.0768000000007305,
+          "visits": 41,
+          "lengthM": 531.450717338042
+        },
+        "astar": {
+          "ms": 0.02690000000075088,
+          "visits": 23,
+          "lengthM": 531.450717338042
+        }
+      }
+    },
+    {
+      "label": "r1000",
+      "kind": "radius",
+      "target": 1000,
+      "cutNodes": 571,
+      "nodes": 552,
+      "edges": 1320,
+      "track2Pairs": 10,
+      "diameterM": 1989.2221406991462,
+      "track1": {
+        "dfs": {
+          "status": "TIMEOUT",
+          "ms": 2000.0517999999993,
+          "visits": 84543000,
+          "unique": 327,
+          "lengthM": null
+        },
+        "dijkstra": {
+          "ms": 0.09270000000014988,
+          "visits": 7,
+          "lengthM": 264.98997155786725
+        },
+        "astar": {
+          "ms": 0.009799999999813735,
+          "visits": 6,
+          "lengthM": 264.98997155786725
+        }
+      },
+      "track2": {
+        "dfs": {
+          "status": "TIMEOUT",
+          "ms": 2000.018799999999,
+          "visits": 84894000,
+          "unique": 210,
+          "lengthM": null
+        },
+        "dijkstra": {
+          "ms": 0.125,
+          "visits": 534,
+          "lengthM": 2427.994411943718
+        },
+        "astar": {
+          "ms": 0.12089999999989232,
+          "visits": 307,
+          "lengthM": 2427.994411943718
+        }
+      }
+    },
+    {
+      "label": "r2000",
+      "kind": "radius",
+      "target": 2000,
+      "cutNodes": 1656,
+      "nodes": 1573,
+      "edges": 3736,
+      "track2Pairs": 10,
+      "diameterM": 3991.6527654649576,
+      "track1": {
+        "dfs": {
+          "status": "TIMEOUT",
+          "ms": 2000.1177000000007,
+          "visits": 76884000,
+          "unique": 1182,
+          "lengthM": null
+        },
+        "dijkstra": {
+          "ms": 0.06680000000051223,
+          "visits": 7,
+          "lengthM": 264.98997155786725
+        },
+        "astar": {
+          "ms": 0.022100000000136788,
+          "visits": 6,
+          "lengthM": 264.98997155786725
+        }
+      },
+      "track2": {
+        "dfs": {
+          "status": "TIMEOUT",
+          "ms": 2000.0342,
+          "visits": 81144000,
+          "unique": 601,
+          "lengthM": null
+        },
+        "dijkstra": {
+          "ms": 0.3623999999999796,
+          "visits": 1302,
+          "lengthM": 2701.098235246801
+        },
+        "astar": {
+          "ms": 0.1720000000004802,
+          "visits": 343,
+          "lengthM": 2701.098235246801
+        }
+      }
+    },
+    {
+      "label": "r3000",
+      "kind": "radius",
+      "target": 3000,
+      "cutNodes": 2556,
+      "nodes": 2455,
+      "edges": 5833,
+      "track2Pairs": 10,
+      "diameterM": 5975.944001311824,
+      "track1": {
+        "dfs": {
+          "status": "TIMEOUT",
+          "ms": 2000.0393000000004,
+          "visits": 85568000,
+          "unique": 1110,
+          "lengthM": null
+        },
+        "dijkstra": {
+          "ms": 0.09259999999994761,
+          "visits": 7,
+          "lengthM": 264.98997155786725
+        },
+        "astar": {
+          "ms": 0.013800000000628643,
+          "visits": 6,
+          "lengthM": 264.98997155786725
+        }
+      },
+      "track2": {
+        "dfs": {
+          "status": "TIMEOUT",
+          "ms": 2000.039499999999,
+          "visits": 79638000,
+          "unique": 1271,
+          "lengthM": null
+        },
+        "dijkstra": {
+          "ms": 0.48130000000310247,
+          "visits": 631,
+          "lengthM": 3625.7681623942563
+        },
+        "astar": {
+          "ms": 0.6035000000010768,
+          "visits": 69,
+          "lengthM": 3625.7681623942563
+        }
+      }
+    },
+    {
+      "label": "r5000",
+      "kind": "radius",
+      "target": 5000,
+      "cutNodes": 4138,
+      "nodes": 4006,
+      "edges": 9689,
+      "track2Pairs": 10,
+      "diameterM": 9963.159852473047,
+      "track1": {
+        "dfs": {
+          "status": "TIMEOUT",
+          "ms": 2000.1250999999975,
+          "visits": 80277000,
+          "unique": 1602,
+          "lengthM": null
+        },
+        "dijkstra": {
+          "ms": 0.04950000000098953,
+          "visits": 7,
+          "lengthM": 264.98997155786725
+        },
+        "astar": {
+          "ms": 0.014899999998306157,
+          "visits": 6,
+          "lengthM": 264.98997155786725
+        }
+      },
+      "track2": {
+        "dfs": {
+          "status": "TIMEOUT",
+          "ms": 2000.0371000000014,
+          "visits": 80319000,
+          "unique": 1487,
+          "lengthM": null
+        },
+        "dijkstra": {
+          "ms": 0.47599999999874854,
+          "visits": 1861,
+          "lengthM": 5840.758099968635
+        },
+        "astar": {
+          "ms": 0.19539999999688007,
+          "visits": 674,
+          "lengthM": 5840.758099968635
+        }
+      }
+    }
+  ],
+  "verdict": {
+    "dfsFinishedSizes": 10,
+    "dfsTimeoutSizes": 5,
+    "ok": true
+  }
+}

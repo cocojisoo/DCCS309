@@ -226,3 +226,5 @@ Error: ENOENT: no such file or directory, scandir 'C:\Users\25융합인재센터
 ⚠ Found a change in next.config.ts. Restarting the server to apply the changes...
 ===== [2026-09-26 01:30:44] dev (port 3000) =====
 ===== [2026-09-26 01:39:28] dev (port 3000) =====
+===== [2026-09-26 23:08:54] dev (port 3000) =====
+===== [2026-09-26 23:09:18] dev (port 3000) =====
