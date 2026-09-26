@@ -19,6 +19,12 @@
   --series-3: #1baf7a;
   --good: #008300;
   --bad: #e34948;
+
+  /* 실험 페이지: DFS 빨강, 다익스트라 파랑, A* 주황, 기본 도로 연회색 */
+  --algo-dfs: #d63a3a;
+  --algo-dijkstra: #2a78d6;
+  --algo-astar: #e8741f;
+  --road: #cfcdc6;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -37,6 +43,10 @@
     --series-3: #199e70;
     --good: #4caf50;
     --bad: #e66767;
+    --algo-dfs: #ec6262;
+    --algo-dijkstra: #4b94ea;
+    --algo-astar: #f08a3c;
+    --road: #45443f;
   }
 }
 
@@ -228,4 +238,17 @@ pre.log {
 }
 .leaflet-container {
   font-family: inherit;
+}
+
+/* 실험 페이지 */
+.study-canvas {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  display: block;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+input[type="range"] {
+  accent-color: var(--accent);
 }

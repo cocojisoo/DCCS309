@@ -43,7 +43,7 @@ export interface Graph {
   crossingLen: Float64Array;
 }
 
-function csr(n: number, keys: Int32Array): { start: Int32Array; list: Int32Array } {
+export function csr(n: number, keys: Int32Array): { start: Int32Array; list: Int32Array } {
   const start = new Int32Array(n + 1);
   for (let e = 0; e < keys.length; e++) start[keys[e] + 1]++;
   for (let v = 0; v < n; v++) start[v + 1] += start[v];
