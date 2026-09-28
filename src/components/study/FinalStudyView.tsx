@@ -3,8 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import LogChart from "./LogChart";
 
-type Algorithm = "dfs" | "dijkstra" | "astar";
-type Objective = "distance" | "time";
+export type Algorithm = "dfs" | "dijkstra" | "astar";
+export type Objective = "distance" | "time";
 type Tab = "overview" | "synthetic" | "road" | "condition" | "results" | "presentation" | "method";
 interface RunRow {
   algorithm: Algorithm; status: string; search_ns: number; objective_cost: number | null;
@@ -13,7 +13,7 @@ interface RunRow {
   relaxed_edges: number | null; heap_peak_entries: number | null; best_so_far: number | null;
   route_edge_ids: string;
 }
-interface Case {
+export interface Case {
   experiment_id: string; size_label: string; objective: Objective; scenario_id: string; od_id: string;
   algorithms: Partial<Record<Algorithm, RunRow>>; dijkstra?: RunRow;
 }
@@ -34,7 +34,7 @@ interface TraceEntry {
   id: string; file: string; label: string; experiment_id: string; size_label: string;
   objective: Objective; scenario_id: string; od_id: string;
 }
-interface Summary {
+export interface Summary {
   meta: {
     osm_timestamp: string | null; osm_sha256: string; config_sha256: string; raw_rows: number;
     radius_stats: { radius_m: number; nodes: number; edges: number; excluded_nodes: number; excluded_edges: number; actual_radius_m: number }[];
@@ -51,19 +51,19 @@ interface Summary {
   trace_index: TraceEntry[];
   presentation: string[];
 }
-interface Frame { step: number; visited: number; current: number; path: number[]; best: number[] | null }
+export interface Frame { step: number; visited: number; current: number; path: number[]; best: number[] | null }
 interface TraceRun {
   status: string; objectiveCost: number | null; bestSoFar: number | null; pathEdges: number[];
   expandedCount: number; uniqueVisited: number; completePaths: number | null;
   trace: { order: number[]; frames: Frame[] } | null;
 }
-interface TraceFile {
+export interface TraceFile {
   experimentId: string; sizeLabel: string; radiusM: number | null; objective: Objective; scenarioId: string;
   od: { source: number; target: number; id: string };
   graph: { x: number[]; y: number[]; from: number[]; to: number[] } | null;
   runs: Partial<Record<Algorithm, TraceRun>>;
 }
-interface RoadJson {
+export interface RoadJson {
   meta: { center: [number, number] };
   lat: number[]; lng: number[]; from: number[]; to: number[]; geomStart: number[]; geom: number[];
   edgeId: string[];
@@ -116,7 +116,7 @@ function RunCard({ algorithm, row, trace, objective, showTravelTime }: { algorit
   </article>;
 }
 
-function RoadCanvas({ trace, road, algorithm, frame, normalRoute, impacted }: {
+export function RoadCanvas({ trace, road, algorithm, frame, normalRoute, impacted }: {
   trace: TraceFile; road: RoadJson | null; algorithm: Algorithm; frame: Frame | null;
   normalRoute?: string[]; impacted?: Set<string>;
 }) {
@@ -125,7 +125,7 @@ function RoadCanvas({ trace, road, algorithm, frame, normalRoute, impacted }: {
   useEffect(() => {
     const element = canvas.current, context = element?.getContext("2d");
     if (!element || !context || !run) return;
-    const width = 840, height = 470, margin = 22;
+    const width = 840, height = 470, margin = 32;
     element.width = width; element.height = height;
     context.fillStyle = getComputedStyle(element).getPropertyValue("--surface").trim() || "#fff";
     context.fillRect(0, 0, width, height);
@@ -186,11 +186,12 @@ function RoadCanvas({ trace, road, algorithm, frame, normalRoute, impacted }: {
     if (trace.od.source >= 0 && trace.od.target >= 0) {
       for (const [node, color] of [[trace.od.source, "#178450"], [trace.od.target, "#a02d8a"]] as [number, string][]) {
         const [x, y] = map(point(node)); context.beginPath(); context.fillStyle = color;
-        context.arc(x, y, 6, 0, 2 * Math.PI); context.fill();
+        context.arc(x, y, 7, 0, 2 * Math.PI); context.fill();
+        context.font = "bold 15px sans-serif"; context.fillText(node === trace.od.source ? "출발" : "도착", x + 10, y - 10);
       }
     }
   }, [trace, road, algorithm, frame, run, normalRoute, impacted]);
-  return <canvas ref={canvas} className="w-full rounded-lg border" style={{ borderColor: "var(--border)", aspectRatio: "840 / 470" }}
+  return <canvas ref={canvas} className="w-full rounded-lg border" style={{ borderColor: "var(--border)", aspectRatio: "840 / 470", maxHeight: 340, objectFit: "contain" }}
     role="img" aria-label={`${algorithmNames[algorithm]} 도로망 탐색 장면. 출발은 초록색, 도착은 보라색입니다.`} />;
 }
 
@@ -232,10 +233,10 @@ function Playback({ trace, road, sample, normalRoute, impacted }: { trace: Trace
   </div>;
 }
 
-export default function FinalStudyView() {
+export default function FinalStudyView({ evidenceOnly = false }: { evidenceOnly?: boolean }) {
   const [summary, setSummary] = useState<Summary | null>(null), [road, setRoad] = useState<RoadJson | null>(null);
   const [batchData, setBatchData] = useState<BatchData | null>(null);
-  const [error, setError] = useState<string | null>(null), [tab, setTab] = useState<Tab>("overview");
+  const [error, setError] = useState<string | null>(null), [tab, setTab] = useState<Tab>(evidenceOnly ? "results" : "overview");
   const [syntheticSize, setSyntheticSize] = useState("8"), [radius, setRadius] = useState("500");
   const [objective, setObjective] = useState<Objective>("distance"), [odType, setOdType] = useState("growing");
   const [scenarioId, setScenarioId] = useState("normal"), [scene, setScene] = useState(0);
@@ -285,7 +286,7 @@ export default function FinalStudyView() {
     (a.experiment_id === b.experiment_id ? 0 : a.experiment_id === "synthetic" ? -1 : 1) ||
     a.graph_nodes - b.graph_nodes || ["dfs", "dijkstra", "astar"].indexOf(a.algorithm) - ["dfs", "dijkstra", "astar"].indexOf(b.algorithm));
   return <div className="space-y-5">
-    <div className="tabs" role="tablist" aria-label="최종 연구 화면">{tabs.map((item) => <button key={item.id} role="tab"
+    <div className="tabs" role="tablist" aria-label="최종 연구 화면">{tabs.filter((item) => !evidenceOnly || item.id === "results" || item.id === "method").map((item) => <button key={item.id} role="tab"
       aria-selected={tab === item.id} className="tab" onClick={() => setTab(item.id)}>{item.label}</button>)}</div>
     {tab === "overview" && <div className="space-y-4">
       <section className="card"><p className="text-sm font-semibold" style={{ color: "var(--accent)" }}>DCCS309 C1 · 최종 도로망 실험</p>

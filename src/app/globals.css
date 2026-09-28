@@ -1,5 +1,47 @@
 @import "tailwindcss";
 
+.lab-workbench { display: grid; gap: 16px; }
+.lab-experiments, .lab-algorithms { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.lab-experiments button, .lab-algorithms button { text-align: left; padding: 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); cursor: pointer; transition: background 160ms; }
+.lab-experiments button strong, .lab-algorithms button strong { display: block; font-size: 15px; }
+.lab-experiments button span, .lab-algorithms button span { display: block; color: var(--text-2); font-size: 12px; margin-top: 5px; }
+.lab-experiments button[aria-pressed="true"], .lab-algorithms button[aria-pressed="true"] { outline: 2px solid var(--accent); outline-offset: -2px; background: var(--surface-2); }
+.lab-section-title { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; margin-bottom: 12px; }
+.lab-section-title h2 { font-size: 17px; font-weight: 700; }
+.lab-step { color: var(--accent); font-size: 12px; font-weight: 800; letter-spacing: .08em; }
+.lab-controls { display: flex; flex-wrap: wrap; gap: 18px; align-items: end; }
+.lab-controls label, .lab-controls fieldset { display: grid; gap: 6px; font-size: 13px; font-weight: 600; min-width: 160px; flex: 1; }
+.lab-controls legend { margin-bottom: 7px; }
+.lab-segments { display: flex; gap: 6px; }
+.lab-segments button { flex: 1; border: 1px solid var(--border); border-radius: 8px; padding: 7px 12px; min-height: 54px; cursor: pointer; }
+.lab-segments button span, .lab-segments button strong { display: block; }
+.lab-segments button span { font-size: 11px; color: var(--text-2); }
+.lab-segments button[aria-pressed="true"] { background: var(--text); color: var(--surface); }
+.lab-segments button[aria-pressed="true"] span { color: inherit; }
+.lab-explanation { font-size: 13px; line-height: 1.65; color: var(--text-2); margin: 14px 0; max-width: 85ch; }
+.lab-context { display: flex; flex-wrap: wrap; gap: 6px 18px; padding: 12px 14px; background: var(--surface-2); border-radius: 8px; font-size: 12px; }
+.lab-context strong { color: var(--accent); }
+.lab-status { margin-left: auto; font-size: 12px; background: var(--surface-2); padding: 4px 10px; border-radius: 20px; }
+.lab-algorithms button { border-top: 3px solid; padding: 9px 12px; }
+.lab-map { margin: 12px 0 8px; background: var(--surface); }
+.lab-map canvas { height: clamp(200px, 32vw, 330px); width: 100%; }
+.lab-map-caption { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px; font-size: 12px; color: var(--text-2); margin-bottom: 10px; }
+.lab-transport { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 14px; }
+.lab-transport label { margin-left: auto; display: flex; align-items: center; gap: 8px; font-size: 12px; }
+.lab-scrubber { display: flex; align-items: end; gap: 12px; margin: 12px 0; }
+.lab-scrubber label { flex: 1; display: grid; gap: 7px; }
+.lab-scrubber label span { display: flex; justify-content: space-between; font-size: 12px; }
+.lab-scrubber input { width: 100%; accent-color: var(--accent); min-height: 24px; cursor: pointer; }
+.lab-results { border-top: 1px solid var(--border); margin-top: 18px; padding-top: 16px; }
+.lab-insight { border-left: 3px solid var(--accent); background: var(--surface-2); padding: 12px 14px; border-radius: 0 8px 8px 0; font-size: 14px; line-height: 1.7; }
+.lab-insight p { font-size: 13px; color: var(--text-2); }
+.lab-condition-result { margin-top: 12px; font-size: 13px; line-height: 1.7; }
+.lab-text-button { color: var(--accent); text-decoration: underline; cursor: pointer; min-height: 44px; }
+.lab-bottom { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; }
+.lab-workbench button:focus-visible, .lab-workbench input:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+@media (max-width: 540px) { .lab-experiments { grid-template-columns: 1fr; } .lab-experiments button { padding: 10px 12px; } .lab-experiments button span { margin-top: 2px; } .lab-algorithms button { padding: 9px 7px; } .lab-algorithms button span { font-size: 11px; } .lab-transport label { margin-left: 0; } .lab-player, .lab-settings { padding: 14px; } }
+@media (prefers-reduced-motion: reduce) { .lab-workbench * { transition: none !important; } }
+
 /* ---------- 디자인 토큰 ---------- */
 :root {
   color-scheme: light;

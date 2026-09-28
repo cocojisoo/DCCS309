@@ -7,7 +7,7 @@ import CompareView from "./CompareView";
 import GrowthView from "./GrowthView";
 import { fetchJson } from "./shared";
 import TradeoffView from "./TradeoffView";
-import FinalStudyView from "./FinalStudyView";
+import ExperimentWorkbench from "./ExperimentWorkbench";
 
 const SCREENS = [
   { id: "final", label: "최종 도로망 연구" },
@@ -35,14 +35,16 @@ export default function StudyView() {
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="tabs" role="tablist" aria-label="실험 화면">
+      <details className="text-sm muted"><summary className="cursor-pointer">이전 연구 화면 열기</summary>
+      <div className="tabs mt-3" role="tablist" aria-label="실험 화면">
         {SCREENS.map((s) => (
           <button key={s.id} role="tab" className="tab" aria-selected={screen === s.id} onClick={() => setScreen(s.id)}>
             {s.label}
           </button>
         ))}
       </div>
-      {screen === "final" && <FinalStudyView />}
+      </details>
+      {screen === "final" && <ExperimentWorkbench />}
       {screen === "classroom" && <ClassroomView />}
       {screen === "compare" && <CompareView timeLimitS={summary?.config.run.dfs_time_limit_s ?? 2} />}
       {screen === "growth" && (summary === undefined ? <p className="muted text-sm">불러오는 중…</p> : summary ? <GrowthView summary={summary} /> : noResults)}
