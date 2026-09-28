@@ -27,6 +27,7 @@ interface Props {
   formatY: (v: number) => string;
   /** 가로 기준선 (예: 제한시간) */
   refLine?: { y: number; label: string };
+  showTimeoutLegend?: boolean;
 }
 
 const W = 720;
@@ -40,7 +41,7 @@ const decades = (lo: number, hi: number) => {
 };
 
 /** 가로·세로 모두 로그 눈금인 선 그래프 */
-export default function LogChart({ title, subtitle, xLabel, yLabel, series, formatY, refLine }: Props) {
+export default function LogChart({ title, subtitle, xLabel, yLabel, series, formatY, refLine, showTimeoutLegend = true }: Props) {
   const [hover, setHover] = useState<{ s: LogSeries; p: LogPoint } | null>(null);
   const all = series.flatMap((s) => s.points).filter((p) => p.x > 0 && p.y > 0);
   if (!all.length) return null;
@@ -66,7 +67,7 @@ export default function LogChart({ title, subtitle, xLabel, yLabel, series, form
               {s.label}
             </span>
           ))}
-          <span>✕ = 시간 초과가 난 크기 (값은 제한시간에 묶임)</span>
+          {showTimeoutLegend && <span>✕ = 시간 초과가 난 크기 (값은 제한시간에 묶임)</span>}
         </div>
       </figcaption>
       <div className="h-5 text-xs num muted">{hover ? `${hover.s.label} · ${hover.p.label}` : ""}</div>

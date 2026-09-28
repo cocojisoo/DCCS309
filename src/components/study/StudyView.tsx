@@ -7,8 +7,10 @@ import CompareView from "./CompareView";
 import GrowthView from "./GrowthView";
 import { fetchJson } from "./shared";
 import TradeoffView from "./TradeoffView";
+import FinalStudyView from "./FinalStudyView";
 
 const SCREENS = [
+  { id: "final", label: "최종 도로망 연구" },
   { id: "classroom", label: "1. 알고리즘 교실" },
   { id: "compare", label: "2. 조치원 탐색 비교" },
   { id: "growth", label: "3. 크기에 따른 변화" },
@@ -17,7 +19,7 @@ const SCREENS = [
 type ScreenId = (typeof SCREENS)[number]["id"];
 
 export default function StudyView() {
-  const [screen, setScreen] = useState<ScreenId>("classroom");
+  const [screen, setScreen] = useState<ScreenId>("final");
   const [summary, setSummary] = useState<StudySummary | null | undefined>(undefined);
 
   useEffect(() => {
@@ -40,6 +42,7 @@ export default function StudyView() {
           </button>
         ))}
       </div>
+      {screen === "final" && <FinalStudyView />}
       {screen === "classroom" && <ClassroomView />}
       {screen === "compare" && <CompareView timeLimitS={summary?.config.run.dfs_time_limit_s ?? 2} />}
       {screen === "growth" && (summary === undefined ? <p className="muted text-sm">불러오는 중…</p> : summary ? <GrowthView summary={summary} /> : noResults)}

@@ -13,7 +13,12 @@
     "study:run": "node --expose-gc --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/study/run.ts",
     "study:summarize": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/study/summarize.ts",
     "study:traces": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/study/traces.ts",
-    "test:study": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test tests/study.test.ts"
+    "final:graph": "node scripts/study/final-graph.mjs",
+    "final:run": "node --expose-gc --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/study/final-run.ts",
+    "final:batch": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/study/final-batch.ts",
+    "test:study": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test tests/study.test.ts",
+    "test:final": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test tests/final.test.ts",
+    "test:final:results": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test tests/final-results.test.ts"
   },
   "dependencies": {
     "leaflet": "^1.9.4",

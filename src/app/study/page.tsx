@@ -7,10 +7,10 @@ export default function StudyPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-bold">DFS · 다익스트라 · A* 크기별 실험</h1>
+        <h1 className="text-2xl font-bold">도로망 알고리즘 실험</h1>
         <p className="muted text-sm mt-1">
-          조치원 실제 차량 도로 지도를 조금씩 키워가면서, 모든 길을 다 확인하는 단순한 방법(DFS)과 더 똑똑한 방법(다익스트라, A*)이 길을 찾는
-          모습과 속도가 어떻게 달라지는지 비교합니다. 비용은 도로 길이(m) 하나입니다.
+          같은 가상 도로와 조치원 차량 도로에서 DFS·Dijkstra·A*의 경로 비용, 탐색 작업량, 검색시간을 비교합니다.
+          거리와 자유 흐름 추정 이동시간을 각각 비용으로 사용할 수 있습니다. 이전 실험 화면도 위 탭에서 볼 수 있습니다.
         </p>
       </div>
       <StudyView />

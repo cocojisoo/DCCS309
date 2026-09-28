@@ -7,6 +7,39 @@
 - 지도 데이터: OpenStreetMap (ODbL)
 - 배포: Vercel
 
+## C1 최종 도로망 실험 (v4)
+
+`/study`의 **최종 도로망 연구** 탭은 가상 도로, 실제 조치원 차량 도로, 가상 혼잡·방향 도로 폐쇄를 비교합니다. DFS는 모든 단순 경로를 확인하되 2초가 지나면 `TIMEOUT`으로 멈춥니다. Dijkstra와 A*는 같은 그래프·출발점·도착점·비용·도로 조건을 사용합니다. 완료한 경로의 비용 불일치, 경로 연결 오류, 폐쇄 도로 사용은 공식 결과에서 오류로 처리합니다.
+
+```bash
+npm ci
+npm run test:final     # 새 알고리즘·그래프 검증
+npm run final:run -- --output-id my-reproduction  # 보존된 도로 그래프로 독립 재현
+npm run final:batch -- --output-id my-reproduction # 짧은 입력의 보조 묶음 측정
+npm run dev            # http://localhost:3000/study
+```
+
+Node.js 24 이상을 사용합니다. 저장소에 포함된 `public/study/final/road.json`은 공개 Overpass API에서 중심 기준 약 10×10km의 차량 도로 자료를 받아 생성했습니다. 도로 파일이 없는 새 작업 환경에서만 `npm run final:graph`를 실행하세요. 생성 파일은 OSM 출처 시각과 SHA-256을 담고, 방향·일방통행·평행 도로·도로 geometry·도로 종류·OSM 속도값 또는 대체 속도를 보존합니다. `scripts/.cache/osm-final-study.json`은 내려받은 공개 OSM 원본의 캐시이며, 발표 시에는 인터넷이 필요하지 않습니다. 지도 타일이나 CDN도 사용하지 않습니다.
+
+`configs/final-study.json`에는 시드 309, 가상 도로 생성 확률과 크기, 도로 반경, OSM 최고속도 누락 시 도로 종류별 대체 속도, 출발·도착 선택 규칙, 혼잡·폐쇄 선택 규칙, 10회 반복, DFS 2초 제한을 기록합니다. 이 설정을 확정한 뒤 실험을 실행합니다. 거리 비용은 도로 길이(m)이며, 추정 이동시간 비용은 길이×3.6÷속도(km/h)입니다. 혼잡과 폐쇄 대상은 5km 실험 그래프의 방향 간선에서 미리 고릅니다. 혼잡은 선택한 도로의 **시간 비용**만 1.5배 또는 3배로 바꾸고, 폐쇄는 방향 간선 하나만 차단합니다. 추정 이동시간은 자유 흐름 가정의 값으로 실제 도착시간이 아닙니다.
+
+| 새 파일 | 내용 |
+|---|---|
+| `results/final-v4/raw_runs.csv` | 실패·시간 초과를 포함한 공식 실행 원본 전체. 없는 비용은 빈칸 |
+| `results/final-v4/summary.csv` | 출발·도착별 10회 중앙값을 거친 전체 중앙값과 IQR |
+| `results/final-v4/od_medians.csv` | 각 출발·도착 쌍의 10회 중앙값과 상태 건수 |
+| `results/final-v4/batch_measurements.csv` | 4·6·8노드의 묶음 측정. 공식 단일 실행값과 구분 |
+| `results/final-v4/meta.json` | 설정·OSM·그래프 해시, 환경, 실제 도로 크기, 선택한 출발·도착과 시나리오 |
+| `public/study/final-v4/summary.json` | 화면의 공식 결과 데이터 |
+| `public/study/final-v4/traces/` | 화면 재생 전용 탐색 기록. 공식 검색시간에 포함하지 않음 |
+
+원본 결과를 보호하기 위해 `final:run`은 선택한 결과 디렉터리 중 하나라도 이미 있으면 다시 쓰지 않습니다. 기본 결과 이름은 `final-v4`이고, 재현할 때는 위처럼 새 `--output-id`를 주어 `results/<이름>`과 `public/study/<이름>`에 별도 결과를 만드세요. `/study`의 발표 화면은 검증된 `final-v4` 결과를 사용합니다. `final:graph`도 저장된 그래프나 OSM 캐시를 덮어쓰지 않습니다. 기존 `results/raw_runs.csv`, `public/graph/study.json`, `public/study/summary.json`은 이전 실험 자료로 유지됩니다. 이전 `/study` 화면은 상단의 나머지 탭에서 볼 수 있습니다.
+
+발표는 `/study` → **최종 도로망 연구** → **발표 모드**에서 시작합니다. 가상 8·16·24노드, 조치원 0.5·2·5km, 사전 정렬 규칙으로 고른 도로 조건 사례, 전체 결과의 8장면 순서입니다. 각 장면에서 **결과로 이동**을 누르면 재생을 기다리지 않아도 됩니다. 실험 수치와 애니메이션은 분리되어 있으므로 재생 속도를 바꿔도 공식 검색시간은 변하지 않습니다.
+
+해석할 때는 DFS 작업량(경로 접두 상태)과 Dijkstra/A* 작업량(확정 노드)의 정의가 다름을 함께 표시합니다. DFS `TIMEOUT`의 2초와 완료한 알고리즘의 검색시간을 나눠 속도 배율로 주장하지 않습니다. A*가 항상 빠르다고 가정하지 않으며, 경로 변화가 없는 경우와 도달 불가도 결과에 남깁니다. 실제 신호·회전·사고·실시간 교통은 반영하지 않았습니다.
+요약의 검색시간 중앙값은 정상 완료 행만 사용하고, 탐색 작업량 중앙값에는 시간 초과 행도 포함합니다.
+
 ---
 
 !!! 모든 작업은 develop 혹은 main을 제외한 branch에서 해주세요 !!!

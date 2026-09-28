@@ -1,0 +1,53 @@
+{
+  "schema_version": 3,
+  "seed": 309,
+  "map": {
+    "center_lat": 36.61018,
+    "center_lon": 127.28571,
+    "bbox_half_width_m": 5000,
+    "radii_m": [500, 1000, 2000, 3000, 5000],
+    "presentation_radii_m": [500, 2000, 5000]
+  },
+  "speed_kph": {
+    "motorway": 80,
+    "motorway_link": 50,
+    "trunk": 70,
+    "trunk_link": 40,
+    "primary": 60,
+    "primary_link": 40,
+    "secondary": 50,
+    "secondary_link": 35,
+    "tertiary": 40,
+    "tertiary_link": 30,
+    "unclassified": 30,
+    "residential": 30,
+    "service": 15,
+    "living_street": 10,
+    "fallback": 30
+  },
+  "synthetic": {
+    "sizes": [4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24],
+    "presentation_sizes": [8, 16, 24],
+    "extra_edge_probability": 0.45
+  },
+  "road": {
+    "common_pairs_max": 10,
+    "growing_pairs_max": 10,
+    "straight_distance_ratio": [0.4, 0.7]
+  },
+  "run": {
+    "repeats": 10,
+    "warmup": 1,
+    "dfs_time_limit_ms": 2000,
+    "max_trace_frames": 90
+  },
+  "conditions": {
+    "congested_edge_fraction": 0.1,
+    "congestion_multipliers": [1.5, 3],
+    "closure_count": 3
+  },
+  "presentation": {
+    "default_od_rule": "lowest_sorted_od_id",
+    "condition_case_rule": "first_sorted_changed_else_first_valid"
+  }
+}
