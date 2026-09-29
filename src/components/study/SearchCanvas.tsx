@@ -5,7 +5,8 @@ import type { DemoFile, DemoRun } from "@/lib/study/demo";
 import { projector, type StudyGraphJson } from "@/lib/study/graph";
 import type { OdPair } from "@/lib/study/od";
 import type { StudyAlgorithmId } from "@/lib/study/search";
-import { ALGO_STYLE, resolveColor } from "./shared";
+import { resolveColor } from "./shared";
+import { SEARCH_STYLE } from "./SimulationAppearance";
 
 interface Props {
   json: StudyGraphJson;
@@ -109,8 +110,7 @@ export default function SearchCanvas({ json, demo, od, run, algo, frame, timeLim
     ctx.clearRect(0, 0, px, px);
     ctx.drawImage(base, 0, 0);
 
-    const style = ALGO_STYLE[algo];
-    const color = resolveColor(style.color);
+    const color = SEARCH_STYLE.route;
     const text = resolveColor("var(--text)");
     const surface = resolveColor("var(--surface)");
     const last = run.frames.length - 1;
@@ -139,41 +139,33 @@ export default function SearchCanvas({ json, demo, od, run, algo, frame, timeLim
     if (f) {
       // 방문한 교차로
       const r = Math.max(1.6, Math.min(6, 90 / Math.sqrt(demo.nodes))) * dpr;
-      ctx.fillStyle = color;
-      ctx.globalAlpha = 0.55;
+      ctx.fillStyle = SEARCH_STYLE.visited;
+      ctx.globalAlpha = 0.9;
       ctx.beginPath();
       for (let i = 0; i < f.visited; i++) {
         const [x, y] = node(run.order[i]);
-        if (style.marker === "square") ctx.rect(x - r, y - r, 2 * r, 2 * r);
-        else if (style.marker === "circle") {
-          ctx.moveTo(x + r, y);
-          ctx.arc(x, y, r, 0, Math.PI * 2);
-        } else {
-          const d = r * 1.35;
-          ctx.moveTo(x, y - d);
-          ctx.lineTo(x + d, y);
-          ctx.lineTo(x, y + d);
-          ctx.lineTo(x - d, y);
-          ctx.closePath();
-        }
+        ctx.moveTo(x + r, y);
+        ctx.arc(x, y, r, 0, Math.PI * 2);
       }
       ctx.fill();
       ctx.globalAlpha = 1;
 
       if (!finished) {
-        if (f.best >= 0) strokeEdges(run.bests[f.best], 2.5, resolveColor("var(--good)"), [3, 3]);
-        strokeEdges(f.path, 3, color, style.dash);
+        if (f.best >= 0) strokeEdges(run.bests[f.best], 2.5, SEARCH_STYLE.candidate, [3, 3]);
+        strokeEdges(f.path, 4, color);
         if (f.current >= 0) {
           const [x, y] = node(f.current);
-          ctx.strokeStyle = text;
-          ctx.lineWidth = 2 * dpr;
+          ctx.strokeStyle = SEARCH_STYLE.current;
+          ctx.lineWidth = 3 * dpr;
           ctx.beginPath();
           ctx.arc(x, y, r + 3 * dpr, 0, Math.PI * 2);
           ctx.stroke();
         }
       } else if (run.status === "SUCCESS") {
         strokeEdges(run.pathEdges, 7, surface);
-        strokeEdges(run.pathEdges, 4.5, text);
+        strokeEdges(run.pathEdges, 5.5, SEARCH_STYLE.final);
+      } else if (f.best >= 0) {
+        strokeEdges(run.bests[f.best], 4, SEARCH_STYLE.candidate, [5, 5]);
       }
     }
 
@@ -195,16 +187,24 @@ export default function SearchCanvas({ json, demo, od, run, algo, frame, timeLim
       ctx.fillText(label, x, y + dy * dpr);
     }
 
+    if (f && !finished && f.current >= 0) {
+      const [x, y] = node(f.current);
+      ctx.fillStyle = SEARCH_STYLE.currentFill;
+      ctx.strokeStyle = SEARCH_STYLE.current;
+      ctx.lineWidth = 2.5 * dpr;
+      ctx.beginPath(); ctx.arc(x, y, 6 * dpr, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      ctx.beginPath(); ctx.arc(x, y, 10 * dpr, 0, Math.PI * 2); ctx.stroke();
+    }
     if (finished && run.status === "TIMEOUT") {
       ctx.fillStyle = surface;
       ctx.globalAlpha = 0.82;
-      ctx.fillRect(0, px / 2 - 34 * dpr, px, 68 * dpr);
+      ctx.fillRect(0, 0, px, 44 * dpr);
       ctx.globalAlpha = 1;
-      ctx.fillStyle = resolveColor("var(--algo-dfs)");
-      ctx.font = `800 ${Math.min(30, size / 11) * dpr}px system-ui, sans-serif`;
+      ctx.fillStyle = SEARCH_STYLE.candidate;
+      ctx.font = `800 ${Math.min(18, size / 15) * dpr}px system-ui, sans-serif`;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText(`${timeLimitS}초 안에 못 끝남`, px / 2, px / 2);
+      ctx.fillText(String(timeLimitS) + "초 종료 · 최단 경로 미확정", px / 2, 22 * dpr);
       ctx.textBaseline = "alphabetic";
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { CLASSROOM_NODES, CLASSROOM_SOURCE, CLASSROOM_TARGET, classroomGraph } from "@/lib/study/classroom";
 import { FINDERS } from "@/lib/study/finders";
 import { STUDY_ALGORITHMS, type StudyAlgorithmId, type TraceFrame } from "@/lib/study/search";
-import { ALGO_STYLE } from "./shared";
+import { SEARCH_STYLE, SimulationLegend } from "./SimulationAppearance";
 
 const W = 650;
 const H = 320;
@@ -23,6 +23,7 @@ export default function ClassroomView() {
   const [algo, setAlgo] = useState<StudyAlgorithmId>("dfs");
   const [frame, setFrame] = useState(0);
   const [playing, setPlaying] = useState(false);
+  const [speed, setSpeed] = useState(1);
 
   const result = useMemo(
     () => FINDERS[algo](g, CLASSROOM_SOURCE, CLASSROOM_TARGET, { timeLimitMs: null, heuristicScale: 1, recordTrace: true, maxFrames: 10000 }),
@@ -36,9 +37,9 @@ export default function ClassroomView() {
 
   useEffect(() => {
     if (!running) return;
-    const id = setTimeout(() => setFrame((x) => x + 1), 900);
+    const id = setTimeout(() => setFrame((x) => x + 1), 1100 / speed);
     return () => clearTimeout(id);
-  }, [running, frame]);
+  }, [running, frame, speed]);
 
   const pick = (a: StudyAlgorithmId) => {
     setAlgo(a);
@@ -53,7 +54,7 @@ export default function ClassroomView() {
   const pathRoads = new Set(f.path.map(road));
   const bestRoads = new Set((f.best ?? []).map(road));
   const finalRoads = done && result.status === "SUCCESS" ? new Set(result.pathEdges.map(road)) : new Set<number>();
-  const color = ALGO_STYLE[algo].color;
+  const color = SEARCH_STYLE.route;
 
   const describe = (x: TraceFrame) => {
     const g0 = pathLen(x.path);
@@ -79,7 +80,7 @@ export default function ClassroomView() {
         </div>
         <div className="flex flex-wrap gap-2">
           <button className="btn" onClick={() => { setFrame(0); setPlaying(false); }}>처음</button>
-          <button className="btn" onClick={() => setFrame((x) => Math.max(0, x - 1))} disabled={frame === 0}>◀ 이전</button>
+          <button className="btn" onClick={() => { setPlaying(false); setFrame((x) => Math.max(0, x - 1)); }} disabled={frame === 0}>◀ 이전</button>
           <button
             className="btn btn-primary"
             onClick={() => {
@@ -89,11 +90,14 @@ export default function ClassroomView() {
           >
             {running ? "⏸ 멈춤" : "▶ 재생"}
           </button>
-          <button className="btn" onClick={() => setFrame((x) => Math.min(frames.length - 1, x + 1))} disabled={done}>한 단계 ▶</button>
+          <button className="btn" onClick={() => { setPlaying(false); setFrame((x) => Math.min(frames.length - 1, x + 1)); }} disabled={done}>한 단계 ▶</button>
+          <label className="text-sm">화면 속도<select className="final-select" value={speed} onChange={e => setSpeed(Number(e.target.value))}>
+            <option value={0.5}>느리게</option><option value={1}>기본</option><option value={2}>빠르게</option></select></label>
         </div>
       </div>
 
       <p className="text-sm muted">{HOW[algo]}</p>
+      <SimulationLegend dfs={algo === "dfs"} />
 
       <div className="grid md:grid-cols-[3fr_2fr] gap-4">
         <section className="card">
@@ -109,13 +113,13 @@ export default function ClassroomView() {
                 <g key={r}>
                   <line
                     x1={sx(g.x[a])} y1={sy(g.y[a])} x2={sx(g.x[b])} y2={sy(g.y[b])}
-                    stroke={onFinal ? "var(--text)" : onPath ? color : onBest ? "var(--good)" : "var(--road)"}
+                    stroke={onFinal ? SEARCH_STYLE.final : onPath ? color : onBest ? SEARCH_STYLE.candidate : "var(--road)"}
                     strokeWidth={onFinal ? 7 : onPath ? 5 : onBest ? 5 : 3}
                     strokeDasharray={onBest && !onPath && !onFinal ? "8 5" : undefined}
                     strokeLinecap="round"
                   />
-                  <text x={(sx(g.x[a]) + sx(g.x[b])) / 2} y={(sy(g.y[a]) + sy(g.y[b])) / 2 - 6} textAnchor="middle" fontSize="12" fill="var(--text-3)">
-                    {g.len[e]}
+                  <text x={(sx(g.x[a]) + sx(g.x[b])) / 2} y={(sy(g.y[a]) + sy(g.y[b])) / 2 - 6} textAnchor="middle" fontSize="13" fontWeight="700" fill="var(--text)" stroke="var(--surface)" strokeWidth="5" paintOrder="stroke">
+                    {g.len[e]}m
                   </text>
                 </g>
               );
@@ -125,27 +129,21 @@ export default function ClassroomView() {
               const seen = visited.has(v);
               return (
                 <g key={n.name}>
+                  {isCur && <circle cx={sx(n.x)} cy={sy(n.y)} r="24" fill="none" stroke={SEARCH_STYLE.current} strokeWidth="3" />}
                   <circle
                     cx={sx(n.x)} cy={sy(n.y)} r={isCur ? 19 : 16}
-                    fill={seen ? color : "var(--surface)"}
-                    fillOpacity={seen ? (isCur ? 1 : 0.35) : 1}
-                    stroke={isCur ? "var(--text)" : v === CLASSROOM_SOURCE || v === CLASSROOM_TARGET ? "var(--text)" : "var(--road)"}
+                    fill={isCur ? SEARCH_STYLE.currentFill : seen ? SEARCH_STYLE.visitedFill : "var(--surface)"}
+                    stroke={isCur ? SEARCH_STYLE.current : seen ? SEARCH_STYLE.visited : "var(--road)"}
                     strokeWidth={isCur ? 3.5 : 2}
                   />
-                  <text x={sx(n.x)} y={sy(n.y) + 5} textAnchor="middle" fontSize="15" fontWeight="700" fill="var(--text)">
+                  <text x={sx(n.x)} y={sy(n.y) + 5} textAnchor="middle" fontSize="15" fontWeight="700" fill={seen || isCur ? SEARCH_STYLE.ink : "var(--text)"}>
                     {n.name}
                   </text>
                 </g>
               );
             })}
           </svg>
-          <div className="flex flex-wrap gap-4 text-xs muted mt-2">
-            <span><span className="swatch" style={{ background: color }} />지금 보고 있는 교차로 (진한 색, 굵은 테두리)</span>
-            <span><span className="swatch" style={{ background: color, opacity: 0.35 }} />이미 본 교차로</span>
-            <span><span className="swatch" style={{ background: color }} />지금 따라가는 길</span>
-            {algo === "dfs" && <span><span className="swatch" style={{ background: "var(--good)" }} />현재 최고 기록 길 (점선)</span>}
-            <span><span className="swatch" style={{ background: "var(--text)" }} />최종 경로</span>
-          </div>
+          <p className="text-sm muted mt-2">{done ? "초록색 굵은 선이 확정된 최종 경로입니다." : "현재: " + name(f.current) + " · 주황색 이중 테두리"} · 화면 재생시간은 실제 계산시간과 다릅니다.</p>
         </section>
 
         <section className="card flex flex-col gap-2">

@@ -1,11 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import FinalStudyView, { RoadCanvas, type Algorithm, type Objective, type Summary, type TraceFile, type RoadJson, type Frame } from "./FinalStudyView";
+import FinalStudyView, { type Objective, type Summary, type TraceFile, type RoadJson } from "./FinalStudyView";
+import ExperimentPlayer from "./ExperimentPlayer";
 
-const names: Record<Algorithm, string> = { dfs: "DFS", dijkstra: "Dijkstra", astar: "A*" };
-const colors: Record<Algorithm, string> = { dfs: "#d63a3a", dijkstra: "#2a78d6", astar: "#e8741f" };
-const roles: Record<Algorithm, string> = { dfs: "가능한 경로를 모두 확인", dijkstra: "가까운 곳부터 확정", astar: "도착 방향을 고려해 탐색" };
 const conditions = [{ id: "normal", label: "정상" }, { id: "congestion_1_5", label: "혼잡 1.5배" }, { id: "congestion_3_0", label: "혼잡 3배" }, { id: "closure_1", label: "폐쇄 1" }, { id: "closure_2", label: "폐쇄 2" }, { id: "closure_3", label: "폐쇄 3" }];
 const fmt = (v: number | null | undefined, digits = 2) => v == null ? "—" : v.toLocaleString("ko-KR", { maximumFractionDigits: digits });
 type Experiment = "synthetic" | "road" | "condition";
@@ -74,50 +72,4 @@ export default function ExperimentWorkbench() {
     <div className="lab-bottom"><button className="btn" onClick={() => { if (experiment !== "condition" && size < 2) setSize(size + 1); else changeExperiment(experiment === "synthetic" ? "road" : experiment === "road" ? "condition" : "synthetic"); }}>{experiment !== "condition" && size < 2 ? "다음 크기와 비교 →" : experiment === "synthetic" ? "실제 조치원 도로로 →" : experiment === "road" ? "혼잡·폐쇄 실험으로 →" : "처음 실험으로 →"}</button><button className="btn" aria-expanded={evidence} onClick={() => setEvidence(!evidence)}>{evidence ? "전체 측정표 닫기" : "전체 측정표·연구 방법 보기"}</button></div>
     {evidence && <FinalStudyView evidenceOnly />}
   </div>;
-}
-
-function ExperimentPlayer({ trace, road, summary }: { trace: TraceFile; road: RoadJson; summary: Summary }) {
-  const [algorithm, setAlgorithm] = useState<Algorithm>(trace.experimentId === "condition" ? "dijkstra" : "dfs");
-  const [progress, setProgress] = useState(0), [playing, setPlaying] = useState(false), [speed, setSpeed] = useState(1);
-  useEffect(() => {
-    if (!playing || progress >= 100) return;
-    const timer = window.setInterval(() => setProgress(p => Math.min(100, p + speed)), 120);
-    return () => window.clearInterval(timer);
-  }, [playing, speed, progress]);
-  const isPlaying = playing && progress < 100;
-  const algorithms = Object.keys(trace.runs) as Algorithm[];
-  const run = trace.runs[algorithm]!;
-  const frames = run.trace?.frames ?? [];
-  const frame: Frame | null = progress === 0 ? null : frames[Math.min(frames.length - 1, Math.floor(progress / 100 * (frames.length - 1)))] ?? null;
-  const done = progress === 100;
-  const matches = (c: { experiment_id: string; size_label: string; objective: string; scenario_id: string; od_id: string }) => c.experiment_id === trace.experimentId && c.size_label === trace.sizeLabel && c.objective === trace.objective && c.scenario_id === trace.scenarioId && c.od_id === trace.od.id;
-  const sample = summary.cases.find(matches);
-  const medians = summary.od_medians.filter(matches);
-  const normal = summary.cases.find(c => c.experiment_id === "condition" && c.scenario_id === "normal" && c.objective === trace.objective && c.od_id === trace.od.id)?.dijkstra;
-  const scenario = summary.meta.scenarios.find(s => s.id === trace.scenarioId);
-  const impacted = new Set([...(scenario?.congestedEdgeIds ?? []), ...(scenario?.closedEdgeIds ?? [])]);
-  const current = sample?.dijkstra;
-  const changed = current?.route_edge_ids !== normal?.route_edge_ids;
-  const counts = summary.change_counts.find(c => c.scenario_id === trace.scenarioId);
-  const d = medians.find(m => m.algorithm === "dijkstra"), a = medians.find(m => m.algorithm === "astar");
-  return <section className="card lab-player">
-    <div className="lab-section-title"><span className="lab-step">02</span><h2>탐색 과정을 살펴보세요</h2><span className="lab-status" role="status">{done ? "재생 완료" : playing ? "재생 중" : progress ? "일시정지" : "재생 준비"}</span></div>
-    <p className="text-sm muted mb-3">저장된 실험 기록을 느리게 재생합니다. 아래 알고리즘을 바꾸면 같은 조건의 탐색 과정을 볼 수 있습니다.</p>
-    <div className="lab-algorithms" aria-label="지도에 표시할 알고리즘">{algorithms.map(id => <button key={id} aria-pressed={algorithm === id} onClick={() => setAlgorithm(id)} style={{ borderTopColor: colors[id] }}><strong>{names[id]}</strong><span>{roles[id]}</span></button>)}</div>
-    <div className="lab-map"><RoadCanvas trace={trace} road={trace.experimentId === "synthetic" ? null : road} algorithm={algorithm} frame={frame} normalRoute={trace.experimentId === "condition" ? normal?.route_edge_ids.split(" ").filter(Boolean) : undefined} impacted={impacted} /></div>
-    <div className="lab-map-caption"><span>초록 ● 출발 · 보라 ● 도착 · 색 점: 방문한 교차로</span><strong>{done ? run.status === "TIMEOUT" ? "DFS 시간 초과 · 표시된 경로는 후보입니다" : run.status === "NO_PATH" ? "도달할 수 있는 경로 없음" : "탐색 완료 · 최종 경로" : `${names[algorithm]} · 기록상 방문 교차로 ${fmt(frame?.visited ?? 0, 0)}개`}</strong></div>
-    {trace.experimentId === "condition" && <p className="text-xs muted">회색 점선: 정상 경로 · 빨간 도로: 혼잡 또는 폐쇄 대상 · 색 실선: 현재 조건의 경로</p>}
-    <div className="lab-transport"><button className="btn btn-primary" onClick={() => { if (done) setProgress(0); setPlaying(!isPlaying); }}>{isPlaying ? "일시정지" : done ? "다시 재생" : "탐색 재생"}</button><button className="btn" onClick={() => { setProgress(0); setPlaying(false); }}>처음</button><button className="btn" onClick={() => { setProgress(100); setPlaying(false); }}>결과 보기</button><label>재생 속도<select className="final-select" value={speed} onChange={e => setSpeed(Number(e.target.value))}><option value={0.5}>0.5×</option><option value={1}>1×</option><option value={2}>2×</option></select></label></div>
-    <div className="lab-scrubber"><button className="btn" aria-label="한 단계 이전" onClick={() => { setPlaying(false); setProgress(p => Math.max(0, p - 2)); }}>−</button><label><span>재생 위치 <strong>{Math.round(progress)}%</strong></span><input aria-label="재생 위치" type="range" min={0} max={100} step={1} value={progress} onChange={e => { setPlaying(false); setProgress(Number(e.target.value)); }} /></label><button className="btn" aria-label="한 단계 다음" onClick={() => { setPlaying(false); setProgress(p => Math.min(100, p + 2)); }}>＋</button></div>
-    <p className="text-xs muted">재생률은 알고리즘별 기록의 진행 비율입니다. 실제 계산 속도 비교는 아래 측정값을 사용하세요. 기록은 일부 단계만 포함합니다.</p>
-    <div className="lab-results"><div className="lab-section-title"><span className="lab-step">03</span><h2>이번 조건의 결과</h2></div>
-      {!done ? <p className="muted">재생이 끝나면 알고리즘별 측정 결과를 비교합니다. 바로 확인하려면 <button className="lab-text-button" onClick={() => { setProgress(100); setPlaying(false); }}>결과 보기</button>를 누르세요.</p> : <>
-        <div className="lab-insight"><strong>{trace.experimentId === "condition" ? current?.status === "NO_PATH" ? "도로를 막은 뒤 목적지에 도달할 수 없습니다." : trace.scenarioId === "normal" ? "정상 상태를 기준으로 혼잡·폐쇄 결과를 비교하세요." : changed ? "도로 조건이 달라지면서 선택한 경로도 바뀌었습니다." : "이번 출발·도착에서는 경로가 바뀌지 않았습니다." : sample?.algorithms.dfs?.status === "TIMEOUT" ? "DFS는 2초 안에 최적 경로를 확정하지 못했습니다." : "완료한 알고리즘들은 같은 최소 비용을 찾았습니다."}</strong>
-          <p>Dijkstra {fmt(d?.objective_cost)}{trace.objective === "distance" ? "m" : "초"} · A* {fmt(a?.objective_cost)}{trace.objective === "distance" ? "m" : "초"}. {a?.median_expanded != null && d?.median_expanded != null ? `확정한 교차로는 각각 ${fmt(d.median_expanded, 0)}개와 ${fmt(a.median_expanded, 0)}개입니다.` : ""}</p></div>
-        <div className="table-wrap"><table className="data"><caption className="text-left text-xs muted py-2">같은 조건 10회 측정의 중앙값 · 애니메이션 재생시간과 별도</caption><thead><tr><th>알고리즘</th><th>결과</th><th>최소 비용 {trace.objective === "distance" ? "m" : "초"}</th><th>검색시간 ms</th><th>작업량</th></tr></thead><tbody>{algorithms.map(id => { const m = medians.find(r => r.algorithm === id); return <tr key={id}><td>{names[id]}</td><td>{m?.timeout ? `${m.timeout}/10회 시간 초과` : m?.success === 10 ? "10/10회 완료" : "상세 표 확인"}</td><td>{fmt(m?.objective_cost)}</td><td>{fmt(m?.median_search_ns == null ? null : m.median_search_ns / 1e6, 3)}</td><td>{fmt(m?.median_expanded, 0)}</td></tr>; })}</tbody></table></div>
-        <p className="text-xs muted mt-2">DFS 작업량 = 확인한 경로 접두 상태 수. Dijkstra/A* 작업량 = 확정 교차로 수. 시간 초과한 DFS의 비용·완료시간은 미확정입니다.</p>
-        {trace.experimentId === "condition" && <div className="lab-condition-result"><p>정상 → 선택 조건: 경로 거리 {fmt(normal?.route_length_m)} → {fmt(current?.route_length_m)}m · 차량 추정시간 {fmt(normal?.estimated_scenario_s)} → {fmt(current?.estimated_scenario_s)}초</p><p>전체 {counts?.total}개 조건·출발도착 표본: 경로 변경 {counts?.route_changed}, 변화 없음 {counts?.unchanged}, 도달 불가 {counts?.no_path}. 한 사례가 전체 경향을 대표하지 않습니다.</p></div>}
-      </>}
-    </div>
-  </section>;
 }

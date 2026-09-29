@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import LogChart from "./LogChart";
+import ExperimentPlayer from "./ExperimentPlayer";
 
 export type Algorithm = "dfs" | "dijkstra" | "astar";
 export type Objective = "distance" | "time";
@@ -60,12 +61,12 @@ interface TraceRun {
 export interface TraceFile {
   experimentId: string; sizeLabel: string; radiusM: number | null; objective: Objective; scenarioId: string;
   od: { source: number; target: number; id: string };
-  graph: { x: number[]; y: number[]; from: number[]; to: number[] } | null;
+  graph: { x: number[]; y: number[]; from: number[]; to: number[]; len: number[] } | null;
   runs: Partial<Record<Algorithm, TraceRun>>;
 }
 export interface RoadJson {
   meta: { center: [number, number] };
-  lat: number[]; lng: number[]; from: number[]; to: number[]; geomStart: number[]; geom: number[];
+  lat: number[]; lng: number[]; from: number[]; to: number[]; len: number[]; geomStart: number[]; geom: number[];
   edgeId: string[];
 }
 interface BatchData {
@@ -96,143 +97,10 @@ function Select({ label, value, onChange, options }: { label: string; value: str
   </label>;
 }
 
-function RunCard({ algorithm, row, trace, objective, showTravelTime }: { algorithm: Algorithm; row?: RunRow; trace?: TraceRun;
-  objective: Objective; showTravelTime: boolean }) {
-  const status = row?.status ?? trace?.status ?? "ERROR";
-  return <article className="card min-w-0" style={{ borderTop: `4px solid ${algorithmColors[algorithm]}` }}>
-    <div className="flex items-center justify-between gap-2"><h3 className="font-bold">{algorithmNames[algorithm]}</h3>
-      <span className={`badge ${status === "SUCCESS" ? "badge-good" : "badge-bad"}`}>{statusNames[status] ?? status}</span></div>
-    <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 text-sm">
-      <dt className="muted">최소 비용 ({objective === "distance" ? "m" : "s"})</dt><dd className="num text-right">{status === "SUCCESS" ? number(row?.objective_cost ?? trace?.objectiveCost, 3) : "미확정"}</dd>
-      <dt className="muted">검색시간</dt><dd className="num text-right">{millis(row?.search_ns)}</dd>
-      {showTravelTime && <><dt className="muted">차량 추정시간</dt><dd className="num text-right">{status === "SUCCESS" ? `${number(row?.estimated_scenario_s, 1)} s` : "미확정"}</dd></>}
-      <dt className="muted">탐색 작업량</dt><dd className="num text-right">{number(row?.expanded_count ?? trace?.expandedCount, 0)}</dd>
-      <dt className="muted">서로 다른 노드</dt><dd className="num text-right">{number(row?.unique_visited ?? trace?.uniqueVisited, 0)}</dd>
-      <dt className="muted">완료 경로</dt><dd className="num text-right">{number(row?.complete_paths ?? trace?.completePaths, 0)}</dd>
-      {algorithm !== "dfs" && <><dt className="muted">완화한 간선</dt><dd className="num text-right">{number(row?.relaxed_edges, 0)}</dd>
-        <dt className="muted">최대 힙 크기</dt><dd className="num text-right">{number(row?.heap_peak_entries, 0)}</dd></>}
-    </dl>
-    {status === "TIMEOUT" && <p className="mt-3 text-sm muted">2초에 중단했습니다. 발견한 후보는 {number(row?.best_so_far ?? trace?.bestSoFar, 2)}이며 최적값으로 확정하지 않습니다.</p>}
-  </article>;
+function Playback({ trace, road, summary }: { trace: TraceFile | null; road: RoadJson | null; summary: Summary }) {
+  return trace && road ? <ExperimentPlayer trace={trace} road={road} summary={summary} /> :
+    <p role="status" className="card">탐색 기록을 불러오는 중입니다.</p>;
 }
-
-export function RoadCanvas({ trace, road, algorithm, frame, normalRoute, impacted }: {
-  trace: TraceFile; road: RoadJson | null; algorithm: Algorithm; frame: Frame | null;
-  normalRoute?: string[]; impacted?: Set<string>;
-}) {
-  const canvas = useRef<HTMLCanvasElement>(null);
-  const run = trace.runs[algorithm];
-  useEffect(() => {
-    const element = canvas.current, context = element?.getContext("2d");
-    if (!element || !context || !run) return;
-    const width = 840, height = 470, margin = 32;
-    element.width = width; element.height = height;
-    context.fillStyle = getComputedStyle(element).getPropertyValue("--surface").trim() || "#fff";
-    context.fillRect(0, 0, width, height);
-    const synthetic = trace.graph;
-    if (!synthetic && !road) return;
-    const radius = trace.radiusM ?? 5000;
-    const center = road?.meta.center ?? [0, 0];
-    const kx = 6371008.8 * Math.PI / 180 * Math.cos(center[0] * Math.PI / 180);
-    const ky = 6371008.8 * Math.PI / 180;
-    const point = synthetic ? (v: number): [number, number] => [synthetic.x[v], synthetic.y[v]] :
-      (v: number): [number, number] => [(road!.lng[v] - center[1]) * kx, (road!.lat[v] - center[0]) * ky];
-    const limits = synthetic ? { minX: Math.min(...synthetic.x), maxX: Math.max(...synthetic.x), minY: Math.min(...synthetic.y), maxY: Math.max(...synthetic.y) } :
-      { minX: -radius, maxX: radius, minY: -radius, maxY: radius };
-    const rangeX = Math.max(1, limits.maxX - limits.minX), rangeY = Math.max(1, limits.maxY - limits.minY);
-    const scale = Math.min((width - margin * 2) / rangeX, (height - margin * 2) / rangeY);
-    const ox = (width - rangeX * scale) / 2, oy = (height - rangeY * scale) / 2;
-    const map = ([x, y]: [number, number]): [number, number] => [ox + (x - limits.minX) * scale, height - (oy + (y - limits.minY) * scale)];
-    const edgeCount = synthetic ? synthetic.from.length : road!.from.length;
-    const edgeId = (e: number) => synthetic ? `${synthetic.from[e]}:${synthetic.to[e]}:0` : road!.edgeId[e];
-    const drawEdge = (e: number) => {
-      const from = synthetic ? synthetic.from[e] : road!.from[e], to = synthetic ? synthetic.to[e] : road!.to[e];
-      const a = point(from), b = point(to);
-      if (!synthetic && (Math.abs(a[0]) > radius || Math.abs(a[1]) > radius || Math.abs(b[0]) > radius || Math.abs(b[1]) > radius)) return;
-      context.beginPath();
-      const [sx, sy] = map(a); context.moveTo(sx, sy);
-      if (!synthetic) for (let i = road!.geomStart[e]; i < road!.geomStart[e + 1]; i += 2) {
-        const [x, y] = map([(road!.geom[i + 1] - center[1]) * kx, (road!.geom[i] - center[0]) * ky]);
-        context.lineTo(x, y);
-      }
-      const [tx, ty] = map(b); context.lineTo(tx, ty); context.stroke();
-    };
-    context.strokeStyle = "#aaa9a4"; context.globalAlpha = 0.55; context.lineWidth = synthetic ? 1.5 : 0.7;
-    for (let e = 0; e < edgeCount; e++) drawEdge(e);
-    context.globalAlpha = 1;
-    if (impacted?.size) {
-      context.strokeStyle = "#d63a3a"; context.lineWidth = 2; context.globalAlpha = 0.7;
-      for (let e = 0; e < edgeCount; e++) if (impacted.has(edgeId(e))) drawEdge(e);
-      context.globalAlpha = 1;
-    }
-    const byId = new Map((road?.edgeId ?? []).map((id, e) => [id, e]));
-    const drawRoute = (edges: number[], color: string, lineWidth: number, dashed = false) => {
-      context.strokeStyle = color; context.lineWidth = lineWidth; context.setLineDash(dashed ? [6, 4] : []);
-      for (const edge of edges) drawEdge(edge);
-      context.setLineDash([]);
-    };
-    if (normalRoute && road) drawRoute(normalRoute.map((id) => byId.get(id)).filter((e): e is number => e !== undefined), "#555", 4, true);
-    if (frame) {
-      const visited = run.trace?.order.slice(0, frame.visited) ?? [];
-      context.fillStyle = algorithmColors[algorithm]; context.globalAlpha = 0.65;
-      for (const node of visited) {
-        const [x, y] = map(point(node)); context.beginPath(); context.arc(x, y, synthetic ? 3 : 2, 0, 2 * Math.PI); context.fill();
-      }
-      context.globalAlpha = 1;
-      drawRoute(frame.path, algorithmColors[algorithm], 3);
-      if (frame.current >= 0) { const [x, y] = map(point(frame.current)); context.beginPath(); context.fillStyle = "#111";
-        context.arc(x, y, 5, 0, 2 * Math.PI); context.fill(); }
-    }
-    if (trace.od.source >= 0 && trace.od.target >= 0) {
-      for (const [node, color] of [[trace.od.source, "#178450"], [trace.od.target, "#a02d8a"]] as [number, string][]) {
-        const [x, y] = map(point(node)); context.beginPath(); context.fillStyle = color;
-        context.arc(x, y, 7, 0, 2 * Math.PI); context.fill();
-        context.font = "bold 15px sans-serif"; context.fillText(node === trace.od.source ? "출발" : "도착", x + 10, y - 10);
-      }
-    }
-  }, [trace, road, algorithm, frame, run, normalRoute, impacted]);
-  return <canvas ref={canvas} className="w-full rounded-lg border" style={{ borderColor: "var(--border)", aspectRatio: "840 / 470", maxHeight: 340, objectFit: "contain" }}
-    role="img" aria-label={`${algorithmNames[algorithm]} 도로망 탐색 장면. 출발은 초록색, 도착은 보라색입니다.`} />;
-}
-
-function Playback({ trace, road, sample, normalRoute, impacted }: { trace: TraceFile | null; road: RoadJson | null;
-  sample?: Case; normalRoute?: string[]; impacted?: Set<string> }) {
-  const [frame, setFrame] = useState(0), [playing, setPlaying] = useState(false);
-  const count = Math.max(1, ...Object.values(trace?.runs ?? {}).map((run) => run.trace?.frames.length ?? 0));
-  useEffect(() => {
-    if (!playing) return;
-    const timer = window.setInterval(() => setFrame((n) => {
-      if (n + 1 >= count) { setPlaying(false); return count - 1; }
-      return n + 1;
-    }), 160);
-    return () => window.clearInterval(timer);
-  }, [playing, count]);
-  if (!trace) return <div className="card muted">탐색 기록을 불러오는 중입니다.</div>;
-  const algorithms = Object.keys(trace.runs) as Algorithm[];
-  const selectedFrame = (run?: TraceRun): Frame | null => {
-    const frames = run?.trace?.frames;
-    if (!frames?.length) return null;
-    return frames[Math.round(frame * (frames.length - 1) / Math.max(1, count - 1))];
-  };
-  return <div className="space-y-4">
-    <div className="card flex flex-wrap items-center gap-2" aria-label="탐색 재생 조작">
-      <button className="btn" onClick={() => { setFrame(0); setPlaying(false); }}>처음</button>
-      <button className="btn btn-primary" onClick={() => setPlaying((value) => !value)}>{playing ? "일시정지" : "재생"}</button>
-      <button className="btn" onClick={() => { setFrame(count - 1); setPlaying(false); }}>결과로 이동</button>
-      <span className="ml-auto text-sm muted num">장면 {frame + 1} / {count}</span>
-    </div>
-    <div className={`grid gap-4 ${algorithms.length === 3 ? "xl:grid-cols-3" : "lg:grid-cols-2"}`}>
-      {algorithms.map((algorithm) => <div key={algorithm} className="space-y-3">
-        <RoadCanvas trace={trace} road={road} algorithm={algorithm} frame={selectedFrame(trace.runs[algorithm])}
-          normalRoute={normalRoute} impacted={impacted} />
-        <RunCard algorithm={algorithm} row={sample?.algorithms[algorithm]} trace={trace.runs[algorithm]}
-          objective={trace.objective} showTravelTime={trace.experimentId !== "synthetic"} />
-      </div>)}
-    </div>
-    <p className="text-sm muted">카드의 검색시간은 공식 측정 1회차 값입니다. DFS 작업량은 경로 접두 상태 수이고, Dijkstra/A* 작업량은 확정한 노드 수입니다.</p>
-  </div>;
-}
-
 export default function FinalStudyView({ evidenceOnly = false }: { evidenceOnly?: boolean }) {
   const [summary, setSummary] = useState<Summary | null>(null), [road, setRoad] = useState<RoadJson | null>(null);
   const [batchData, setBatchData] = useState<BatchData | null>(null);
@@ -272,9 +140,6 @@ export default function FinalStudyView({ evidenceOnly = false }: { evidenceOnly?
     candidate.scenario_id === entry?.scenario_id && candidate.od_id === entry?.od_id);
   const normal = summary?.cases.find((candidate) => candidate.experiment_id === "condition" && candidate.scenario_id === "normal" &&
     candidate.objective === entry?.objective && candidate.od_id === entry?.od_id);
-  const normalRoute = useMemo(() => normal?.dijkstra?.route_edge_ids.split(" ").filter(Boolean), [normal]);
-  const impacted = useMemo(() => new Set(summary?.meta.scenarios.find((value) => value.id === entry?.scenario_id)?.congestedEdgeIds ??
-    summary?.meta.scenarios.find((value) => value.id === entry?.scenario_id)?.closedEdgeIds ?? []), [summary, entry]);
   if (error) return <p className="card text-sm" role="alert">{error}. <code>npm run final:graph</code>과 <code>npm run final:run</code> 결과를 확인하세요.</p>;
   if (!summary) return <p className="card muted" role="status">최종 실험 데이터를 불러오는 중입니다.</p>;
   const selectedScenario = summary.change_counts.find((item) => item.scenario_id === scenarioId);
@@ -302,19 +167,19 @@ export default function FinalStudyView({ evidenceOnly = false }: { evidenceOnly?
     {tab === "synthetic" && <section className="space-y-4"><div className="card flex flex-wrap gap-3">
       <Select label="가상 도로 크기" value={syntheticSize} onChange={setSyntheticSize} options={[8, 16, 24].map((n) => ({ value: String(n), label: `${n}노드` }))} />
       <p className="self-end text-sm muted">출발 0 → 도착 {Number(syntheticSize) - 1} · 같은 그래프와 거리 비용 · 시드 309</p></div>
-      <Playback key={entry?.id} trace={trace} road={null} sample={sample} /></section>}
+      <Playback key={entry?.id} trace={trace} road={road} summary={summary} /></section>}
     {tab === "road" && <section className="space-y-4"><div className="card flex flex-wrap gap-3">
       <Select label="도로 범위" value={radius} onChange={setRadius} options={[500, 2000, 5000].map((n) => ({ value: String(n), label: `${n / 1000}km` }))} />
       <Select label="최소화할 비용" value={objective} onChange={(value) => setObjective(value as Objective)} options={[{ value: "distance", label: "거리 최소 (m)" }, { value: "time", label: "추정 이동시간 최소 (s)" }]} />
       <Select label="출발·도착 유형" value={odType} onChange={setOdType} options={[{ value: "common", label: "모든 크기에 공통" }, { value: "growing", label: "지도 크기에 대응" }]} />
       <p className="w-full text-sm muted">{odType === "growing" ? "규모 대응 유형은 지도 크기와 출발·도착 거리의 효과가 함께 변합니다." : "공통 유형은 모든 크기에 포함되는 같은 출발·도착 쌍을 사용합니다."} 추정 이동시간은 실제 교통상황을 반영하지 않습니다.</p></div>
-      <Playback key={entry?.id} trace={trace} road={road} sample={sample} /></section>}
+      <Playback key={entry?.id} trace={trace} road={road} summary={summary} /></section>}
     {tab === "condition" && <section className="space-y-4"><div className="card flex flex-wrap gap-3">
       <Select label="도로 조건" value={scenarioId} onChange={setScenarioId} options={summary.meta.scenarios.map((value) => ({ value: value.id, label: scenarioNames[value.id] ?? value.id }))} />
       <Select label="최소화할 비용" value={objective} onChange={(value) => setObjective(value as Objective)} options={[{ value: "distance", label: "거리 최소 (m)" }, { value: "time", label: "추정 이동시간 최소 (s)" }]} />
       <p className="w-full text-sm muted">5km 차량 도로망 · 동일 출발·도착. 회색 점선은 정상 경로, 색 실선은 선택 조건 경로입니다. 빨간 선은 영향받은 방향 도로입니다.</p></div>
       {selectedScenario && <div className="grid gap-3 sm:grid-cols-4">{[["경로 변경", selectedScenario.route_changed], ["변화 없음", selectedScenario.unchanged], ["도달 불가", selectedScenario.no_path], ["전체 표본", selectedScenario.total]].map(([label, value]) => <div className="card" key={label}><p className="muted text-sm">{label}</p><p className="num text-xl font-bold">{value}</p></div>)}</div>}
-      <Playback key={entry?.id} trace={trace} road={road} sample={sample} normalRoute={normalRoute} impacted={impacted} />
+      <Playback key={entry?.id} trace={trace} road={road} summary={summary} />
       <div className="card table-wrap"><h2 className="font-bold">정상 경로와 선택 조건 비교</h2>
         <table className="data mt-3"><thead><tr><th>조건</th><th>상태</th><th>최소 비용 ({objective === "distance" ? "m" : "s"})</th><th>경로 거리 m</th><th>추정 이동시간 s</th><th>검색시간 ms</th><th>확정 노드</th></tr></thead>
           <tbody>{[["정상", normal?.dijkstra], ["선택 조건", sample?.dijkstra]] .map(([label, value]) => {
@@ -376,7 +241,7 @@ export default function FinalStudyView({ evidenceOnly = false }: { evidenceOnly?
       <p className="w-full text-center text-sm muted">재생을 건너뛰고 결과로 바로 이동할 수 있습니다.</p></div>
       {presentationId === "results-summary" ? <div className="card"><h2 className="text-lg font-bold">전체 결과 요약</h2><p className="mt-2 muted">총 {number(summary.meta.raw_rows, 0)}회 실행 · 결과의 중앙값과 IQR은 측정 결과 탭에서 확인할 수 있습니다.</p>
         <p className="mt-2 muted">실제 측정값을 바탕으로 최소 비용 일치, DFS 시간 초과, A* 탐색량과 검색시간의 차이를 설명하세요.</p></div> :
-        <Playback key={entry?.id} trace={trace} road={road} sample={sample} normalRoute={entry?.experiment_id === "condition" ? normalRoute : undefined} impacted={entry?.experiment_id === "condition" ? impacted : undefined} />}</section>}
+        <Playback key={entry?.id} trace={trace} road={road} summary={summary} />}</section>}
     {tab === "method" && <section className="card prose-ko space-y-4"><h2>자료와 재현 방법</h2>
       <p>OpenStreetMap 차량 도로 자료를 공개 Overpass API에서 받았습니다. 출처 시각은 {summary.meta.osm_timestamp ?? "기록 없음"}입니다. 원본 OSM SHA-256은 <code>{summary.meta.osm_sha256}</code>, 설정 SHA-256은 <code>{summary.meta.config_sha256}</code>입니다.</p>
       <p>중심에서 0.5·1·2·3·5km 반경을 잘라 가장 큰 강연결요소를 사용합니다. 강연결요소는 선택한 교차로들 사이를 양방향으로 오갈 수 있는 부분입니다. 일방통행과 평행 도로는 방향 간선으로 보존합니다.</p>

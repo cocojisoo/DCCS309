@@ -4,11 +4,10 @@ import { useEffect, useState } from "react";
 import { formatDistance, formatInt, formatMs } from "@/lib/format";
 import type { DemoFile, DemoIndexEntry, DemoRun } from "@/lib/study/demo";
 import type { StudyGraphJson } from "@/lib/study/graph";
-import { STUDY_ALGORITHMS } from "@/lib/study/search";
+import { STUDY_ALGORITHMS, type StudyAlgorithmId } from "@/lib/study/search";
 import SearchCanvas from "./SearchCanvas";
-import { ALGO_STYLE, fetchJson, STATUS_LABEL } from "./shared";
-
-const FPS = 12;
+import { fetchJson, STATUS_LABEL } from "./shared";
+import { SimulationLegend } from "./SimulationAppearance";
 
 export default function CompareView({ timeLimitS }: { timeLimitS: number }) {
   const [json, setJson] = useState<StudyGraphJson | null>(null);
@@ -19,6 +18,8 @@ export default function CompareView({ timeLimitS }: { timeLimitS: number }) {
   const [demo, setDemo] = useState<DemoFile | null>(null);
   const [frame, setFrame] = useState(-1);
   const [playing, setPlaying] = useState(false);
+  const [algorithm, setAlgorithm] = useState<StudyAlgorithmId>("dfs");
+  const [speed, setSpeed] = useState(1);
 
   useEffect(() => {
     Promise.all([fetchJson<StudyGraphJson>("/graph/study.json"), fetchJson<DemoIndexEntry[]>("/study/traces/index.json")]).then(([g, idx]) => {
@@ -39,16 +40,16 @@ export default function CompareView({ timeLimitS }: { timeLimitS: number }) {
   }, [entry]);
 
   const pair = demo?.pairs[Math.min(pairIdx, (demo?.pairs.length ?? 1) - 1)];
-  const maxFrames = pair ? Math.max(...STUDY_ALGORITHMS.map((a) => pair.runs[a.id].frames.length)) : 0;
+  const maxFrames = pair?.runs[algorithm].frames.length ?? 0;
 
   const done = frame >= maxFrames - 1;
   const running = playing && !done;
 
   useEffect(() => {
     if (!running) return;
-    const id = setTimeout(() => setFrame((f) => f + 1), 1000 / FPS);
+    const id = setTimeout(() => setFrame((f) => f + 1), 1100 / speed);
     return () => clearTimeout(id);
-  }, [running, frame]);
+  }, [running, frame, speed]);
 
   const reset = () => {
     setFrame(-1);
@@ -104,7 +105,7 @@ export default function CompareView({ timeLimitS }: { timeLimitS: number }) {
               </button>
             ))}
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button className="btn" onClick={reset} disabled={frame < 0}>
               처음
             </button>
@@ -121,35 +122,51 @@ export default function CompareView({ timeLimitS }: { timeLimitS: number }) {
             <button className="btn" onClick={() => { setPlaying(false); setFrame(maxFrames - 1); }} disabled={!pair}>
               결과로 ⏭
             </button>
+            <button className="btn" onClick={() => { setPlaying(false); setFrame(f => Math.min(maxFrames - 1, f + 1)); }} disabled={!pair || done}>한 장면씩</button>
           </div>
         </div>
+        <label className="text-sm">화면 속도 <select className="final-select" value={speed} onChange={e => setSpeed(Number(e.target.value))}>
+          <option value={0.5}>느리게</option><option value={1}>기본</option><option value={2}>빠르게</option></select></label>
       </section>
-
+      <div className="lab-algorithms" aria-label="이전 연구 재생 알고리즘">{STUDY_ALGORITHMS.map(a =>
+        <button key={a.id} aria-pressed={algorithm === a.id} onClick={() => { setAlgorithm(a.id); reset(); }}><strong>{a.name}</strong></button>)}</div>
+      <SimulationLegend dfs={algorithm === "dfs"} />
       {!demo || demo.label !== entry.label || !pair ? (
         <p className="muted text-sm">탐색 기록 불러오는 중…</p>
       ) : (
-        <div className="grid md:grid-cols-3 gap-3">
-          {STUDY_ALGORITHMS.map((a) => {
+        <div>
+          {STUDY_ALGORITHMS.filter(a => a.id === algorithm).map((a) => {
             const run = pair.runs[a.id];
             return (
-              <div key={a.id} className="flex flex-col gap-2">
-                <div className="flex items-baseline justify-between">
+              <div key={a.id} className="grid lg:grid-cols-[2fr_1fr] gap-4">
+                <div className="flex items-baseline justify-between lg:col-span-2">
                   <h3 className="font-semibold">
-                    <span className="swatch" style={{ background: ALGO_STYLE[a.id].color }} />
                     {a.name} <span className="faint text-xs font-normal">{a.role}</span>
                   </h3>
-                  <span className="faint text-xs">{ALGO_STYLE[a.id].markerLabel}</span>
+                  <span className="text-sm">{done ? "탐색 종료" : frame < 0 ? "재생 대기" : "현재 교차로 " + run.frames[frame]?.current}</span>
                 </div>
                 <SearchCanvas json={json} demo={demo} od={pair.od} run={run} algo={a.id} frame={frame} timeLimitS={timeLimitS} />
-                <RunCard run={run} frame={frame} shortest={pair.runs.dijkstra.lengthM} />
+                <div><RunCard run={run} frame={frame} shortest={pair.runs.dijkstra.lengthM} />
+                  <div className="card mt-3"><h3 className="font-semibold">탐색 순서 · 장면을 눌러 다시 보기</h3>
+                    <ol className="lab-trace-list" style={{ maxHeight: 300 }}>{run.frames.slice(0, frame + 1).map((item, i) =>
+                      <li key={i} className={i === frame ? "is-current" : ""}><button onClick={() => { setPlaying(false); setFrame(i); }}>
+                        <span className="sim-log-number">{i + 1}</span><div><strong>{i === maxFrames - 1 ? STATUS_LABEL[run.status] : "교차로 " + item.current}</strong>
+                          <span>{i === maxFrames - 1
+                            ? run.status === "SUCCESS"
+                              ? "최종 경로 " + formatDistance(run.pathEdges.reduce((sum, e) => sum + json.len[e], 0))
+                              : run.status === "TIMEOUT" ? "제한시간 안에 최단 경로를 확정하지 못함" : "연결 가능한 경로 없음"
+                            : "이곳까지의 경로 " + formatDistance(item.path.reduce((sum, e) => sum + json.len[e], 0))}</span>
+                        </div></button></li>)}</ol>
+                  </div>
+                </div>
               </div>
             );
           })}
         </div>
       )}
       <p className="text-xs faint">
-        옅은 표시는 방문한 교차로, 색 선은 지금 따라가는 길, 초록 점선은 DFS 의 현재 최고 기록 길, 굵은 검은 선은 최종 경로입니다. 각 방법은 자기
-        탐색을 최대 100장면으로 나눠 같은 속도로 재생합니다 (보여주는 장면만 줄이고 탐색은 줄이지 않음). 걸린 시간은 발표용 기록을 만들 때 1회 잰
+        파란 점은 이미 본 교차로, 주황 테두리는 현재 교차로, 보라 선은 현재 경로, 초록 굵은 선은 확정된 최종 경로입니다.
+        기록은 최대 100장면으로 요약되어 중간 계산이 생략됩니다. 걸린 시간은 발표용 기록을 만들 때 1회 잰
         값이고, 공식 값은 &lsquo;크기에 따른 변화&rsquo;에 있습니다.
       </p>
     </div>
