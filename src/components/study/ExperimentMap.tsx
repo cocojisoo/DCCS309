@@ -7,6 +7,9 @@ import { formatMetres, nodeText, SEARCH_STYLE as color } from "./SimulationAppea
 interface Props {
   trace: TraceFile; road: RoadJson; algorithm: Algorithm; frame: Frame | null; done: boolean;
   full: boolean; normalRoute: string[]; impacted: Set<string>; showBaseline?: boolean;
+  edgeTimes?: number[]; closedIds?: Set<string>; reusable?: number[];
+  shortcuts?: { from: number; to: number }[];
+  useCoordinates?: boolean;
 }
 interface Drawing extends Props {
   width: number; height: number; route: number[]; final: boolean; current: number;
@@ -28,6 +31,7 @@ export default function ExperimentMap(props: Props) {
     return () => observer.disconnect();
   }, []);
   const graph = trace.graph ?? road;
+  const edgeKey = (e: number) => trace.graph ? `${graph.from[e]}:${graph.to[e]}:0` : road.edgeId[e];
   const run = trace.runs[algorithm]!;
   const final = done && run.status === "SUCCESS";
   const current = !done && frame && frame.current >= 0 ? frame.current : -1;
@@ -66,14 +70,15 @@ export default function ExperimentMap(props: Props) {
         {inspection && <button className="sim-small-button" onClick={() => { setInspection(null); setDetailMode(null); }}>탐색 따라가기</button>}
       </div>
       <p>{mode === "connections" ? nodeText(chosen, trace) + "에서 나가는 도로 · 짧은 순" :
-        edges.length ? "출발부터 순서대로 · 합계 " + formatMetres(edges.reduce((s, e) => s + graph.len[e], 0)) : "아직 표시할 경로가 없습니다."}</p>
+        edges.length ? nodeText(graph.from[edges[0]], trace) + " → " + nodeText(graph.to[edges[edges.length - 1]], trace) + " · 순서대로 · 합계 " + formatMetres(edges.reduce((s, e) => s + graph.len[e], 0)) : "아직 표시할 경로가 없습니다."}</p>
       {!!edges.length && <div className="sim-edge-list" aria-label="도로별 실제 길이">
         {edges.map((e, i) => <button key={e} aria-pressed={selectedEdge === e}
           onClick={() => setInspection({ node: chosen, edge: selectedEdge === e ? null : e })}>
           <span className="sim-edge-number">{mode === "route" ? i + 1 : "→"}</span>
           <span>{nodeText(graph.from[e], trace, true)} → {nodeText(graph.to[e], trace, true)}</span>
           <strong>{formatMetres(graph.len[e])}</strong>
-          <span className="sim-edge-tag">{!trace.graph && impacted.has(road.edgeId[e]) ? "조건 변경" : route.includes(e) ? final ? "최종 경로" : "경로 위" : "도로 보기"}</span>
+          {props.edgeTimes && <span className="sim-edge-time">{Number.isFinite(props.edgeTimes[e]) ? props.edgeTimes[e].toFixed(1) + "초" : "폐쇄 · 통행 불가"}</span>}
+          <span className="sim-edge-tag">{props.closedIds?.has(edgeKey(e)) ? "폐쇄" : impacted.has(edgeKey(e)) ? props.edgeTimes ? "혼잡" : "조건 변경" : route.includes(e) ? final ? "최종 경로" : "경로 위" : "도로 보기"}</span>
         </button>)}
       </div>}
       {mode === "connections" && !edges.length && <p>이 교차로에서 나가는 도로가 없습니다.</p>}
@@ -82,12 +87,17 @@ export default function ExperimentMap(props: Props) {
   </div>;
 }
 
-function SyntheticMap({ trace, width, height, route, final, done, frame, current, visited, chosen, selectedEdge, onNode, allRoads }: Drawing) {
+function SyntheticMap({ trace, width, height, route, final, done, frame, current, visited, chosen, selectedEdge, onNode, allRoads,
+  impacted, normalRoute, showBaseline, reusable, shortcuts, closedIds, useCoordinates }: Drawing) {
   const id = useId().replaceAll(":", "");
   const graph = trace.graph!;
   const cols = width < 480 ? (graph.x.length <= 8 ? 3 : 4) : graph.x.length > 16 ? 6 : 4;
   const rows = Math.ceil(graph.x.length / cols);
-  const point = (v: number) => ({
+  const minX = Math.min(...graph.x), maxX = Math.max(...graph.x), minY = Math.min(...graph.y), maxY = Math.max(...graph.y);
+  const point = (v: number) => useCoordinates ? ({
+    x: 35 + (graph.x[v] - minX) / Math.max(1, maxX - minX) * (width - 70),
+    y: height - 45 - (graph.y[v] - minY) / Math.max(1, maxY - minY) * (height - 120),
+  }) : ({
     x: 35 + (v % cols) * (width - 70) / (cols - 1),
     y: 75 + Math.floor(v / cols) * (height - 120) / Math.max(1, rows - 1),
   });
@@ -111,6 +121,9 @@ function SyntheticMap({ trace, width, height, route, final, done, frame, current
         <path d="M0 0 L10 5 L0 10 Z" fill={fill} /></marker>)}</defs>
     {allRoads && <g opacity={graph.x.length > 16 ? 0.28 : 0.5}>{graph.from.map((from, e) => from !== chosen ? path(e, color.road, 1) : null)}</g>}
     {graph.from.map((from, e) => from === chosen ? path(e, color.road, 1.8) : null)}
+    {graph.from.map((u, e) => impacted.has(`${u}:${graph.to[e]}:0`) ? path(e, closedIds?.has(`${u}:${graph.to[e]}:0`) ? "#dc2626" : "#d97706", 8, "7 4") : null)}
+    {showBaseline && graph.from.map((u, e) => normalRoute.includes(`${u}:${graph.to[e]}:0`) ? path(e, "#64748b", 3, "7 6") : null)}
+    {shortcuts?.map((link, i) => { const a = point(link.from), b = point(link.to); return <line key={i} x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke="#7c3aed" strokeWidth="3" strokeDasharray="2 6" />; })}
     {candidate.map(e => path(e, color.candidate, 3, "5 5"))}
     {selectedEdge !== null && path(selectedEdge, color.selected, 11, "3 6")}
     {route.map(e => path(e, "#fff", final ? 7 : 5))}
@@ -123,6 +136,7 @@ function SyntheticMap({ trace, width, height, route, final, done, frame, current
         className="lab-node-button">
         {active && <circle cx={x} cy={y} r="22" fill="none" stroke={color.current} strokeWidth="3" />}
         {chosen === v && !active && <circle cx={x} cy={y} r="22" fill="none" stroke={color.selected} strokeWidth="1.5" strokeDasharray="3 3" />}
+        {reusable?.includes(v) && <circle cx={x} cy={y} r="24" fill="none" stroke="#0f766e" strokeWidth="2" strokeDasharray="5 3" />}
         <circle cx={x} cy={y} r="16" fill={active ? color.currentFill : onFinal ? color.finalFill : seen ? color.visitedFill : "#fff"}
           stroke={active ? color.current : onFinal ? color.final : seen ? color.visited : "#94a3b8"} strokeWidth="2" />
         <text x={x} y={y + 4.5} textAnchor="middle" fontSize="13" fontWeight="800" fill={color.ink}>{nodeText(v, trace, true)}</text>
@@ -135,7 +149,7 @@ function SyntheticMap({ trace, width, height, route, final, done, frame, current
 
 function RoadMap(props: Drawing) {
   const { trace, road, width, height, full, frame, done, current, route, final, visited, selectedEdge, onNode,
-    normalRoute, impacted, showBaseline } = props;
+    normalRoute, impacted, showBaseline, reusable, shortcuts, closedIds, edgeTimes } = props;
   const canvas = useRef<HTMLCanvasElement>(null);
   const projected = useMemo(() => {
     const [lat, lng] = road.meta.center;
@@ -194,8 +208,19 @@ function RoadMap(props: Drawing) {
       ctx.beginPath(); ctx.fillStyle = "#fff"; ctx.strokeStyle = "#a3aebc"; ctx.lineWidth = 1;
       ctx.arc(x, y, full ? 1.5 : 2.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
     }
+    stroke([...impacted].map(id => byId.get(id)).filter((e): e is number => e !== undefined), edgeTimes ? "#d97706" : color.affected, 10, [7, 4]);
+    if (closedIds) stroke([...closedIds].map(id => byId.get(id)).filter((e): e is number => e !== undefined), "#dc2626", 7, [3, 4]);
     if (showBaseline) stroke(normalRoute.map(id => byId.get(id)).filter((e): e is number => e !== undefined), "#64748b", 3, [7, 6]);
-    stroke([...impacted].map(id => byId.get(id)).filter((e): e is number => e !== undefined), color.affected, 10, [7, 4]);
+    for (const v of reusable ?? []) {
+      const [x, y] = node(v); if (!inside(x, y)) continue;
+      ctx.beginPath(); ctx.strokeStyle = "#0f766e"; ctx.lineWidth = 2; ctx.setLineDash([3, 2]);
+      ctx.arc(x, y, full ? 4 : 6, 0, 2 * Math.PI); ctx.stroke(); ctx.setLineDash([]);
+    }
+    for (const link of shortcuts ?? []) {
+      const a = node(link.from), b = node(link.to);
+      ctx.beginPath(); ctx.moveTo(...a); ctx.lineTo(...b); ctx.strokeStyle = "#7c3aed"; ctx.lineWidth = 3;
+      ctx.setLineDash([2, 6]); ctx.stroke(); ctx.setLineDash([]);
+    }
     if (!final && frame?.best) stroke(frame.best, color.candidate, 3, [5, 5]);
     if (selectedEdge !== null) stroke([selectedEdge], color.selected, 12, [3, 5]);
     for (const v of visited) {
@@ -225,7 +250,7 @@ function RoadMap(props: Drawing) {
     const bar = scaleM * viewport.scale;
     ctx.strokeStyle = color.ink; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(15, height - 18); ctx.lineTo(15 + bar, height - 18); ctx.stroke();
     ctx.font = "11px sans-serif"; ctx.fillStyle = color.ink; ctx.textAlign = "left"; ctx.fillText(formatMetres(scaleM), 15, height - 25);
-  }, [trace, road, width, height, full, frame, done, current, route, final, visited, selectedEdge, normalRoute, impacted, showBaseline, projected, viewport, byId, base]);
+  }, [trace, road, width, height, full, frame, done, current, route, final, visited, selectedEdge, normalRoute, impacted, showBaseline, projected, viewport, byId, base, reusable, shortcuts, closedIds, edgeTimes]);
   return <canvas ref={canvas} style={{ width: "100%", height }} role="img" aria-label="조치원 도로 탐색 지도 · 상태별 색과 도형은 위 범례 참조"
     onClick={event => {
       const r = event.currentTarget.getBoundingClientRect(), x = event.clientX - r.left, y = event.clientY - r.top;

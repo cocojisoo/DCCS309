@@ -9,15 +9,18 @@ export const SEARCH_STYLE = {
   selected: "#475569", affected: "#ce3046",
 } as const;
 
-export function SimulationLegend({ dfs = false, condition = false }: { dfs?: boolean; condition?: boolean }) {
+export function SimulationLegend({ dfs = false, condition = false, traffic = false, pathLabel = "현재 교차로까지의 길" }: {
+  dfs?: boolean; condition?: boolean; traffic?: boolean; pathLabel?: string;
+}) {
   return <div className="sim-legend" aria-label="지도 상태 범례">
     <span><i className="sim-key sim-key-current" />지금 보는 교차로</span>
     <span><i className="sim-key sim-key-visited" />이미 본 교차로</span>
     <span><i className="sim-key sim-key-unseen" />아직 안 본 교차로</span>
-    <span><i className="sim-key sim-key-route" />현재 교차로까지의 길</span>
+    <span><i className="sim-key sim-key-route" />{pathLabel}</span>
     <span><i className="sim-key sim-key-final" />확정된 최종 경로</span>
     {dfs && <span><i className="sim-key sim-key-candidate" />발견한 후보 · 아직 미확정</span>}
-    {condition && <span><i className="sim-key sim-key-affected" />혼잡·폐쇄 도로</span>}
+    {condition && (traffic ? <><span><i className="sim-key sim-key-affected" style={{ borderColor: "#d97706" }} />혼잡 도로</span>
+      <span><i className="sim-key sim-key-affected" style={{ borderColor: "#dc2626" }} />폐쇄 도로</span></> : <span><i className="sim-key sim-key-affected" />혼잡·폐쇄 도로</span>)}
   </div>;
 }
 

@@ -7,7 +7,7 @@ import CompareView from "./CompareView";
 import GrowthView from "./GrowthView";
 import { fetchJson } from "./shared";
 import TradeoffView from "./TradeoffView";
-import ExperimentWorkbench from "./ExperimentWorkbench";
+import ResearchWorkbench from "./ResearchWorkbench";
 
 const SCREENS = [
   { id: "final", label: "최종 도로망 연구" },
@@ -44,7 +44,7 @@ export default function StudyView() {
         ))}
       </div>
       </details>
-      {screen === "final" && <ExperimentWorkbench />}
+      {screen === "final" && <ResearchWorkbench />}
       {screen === "classroom" && <ClassroomView />}
       {screen === "compare" && <CompareView timeLimitS={summary?.config.run.dfs_time_limit_s ?? 2} />}
       {screen === "growth" && (summary === undefined ? <p className="muted text-sm">불러오는 중…</p> : summary ? <GrowthView summary={summary} /> : noResults)}

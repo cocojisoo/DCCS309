@@ -133,8 +133,8 @@ export default function ExperimentPlayer({ trace, road, summary }: { trace: Trac
         </div>
         <div className="sim-result-metrics">
           <div><span>최종 경로 거리</span><strong>{success ? formatMetres(lengthOf(run.pathEdges)) : run.status === "NO_PATH" ? "경로 없음" : "미확정"}</strong></div>
-          {trace.objective === "time" && <div><span>차량 추정 이동시간</span><strong>{success ? fmt(run.objectiveCost) + "초" : "미확정"}</strong></div>}
-          <div><span>본 교차로 · 중복 제외</span><strong>{fmt(run.uniqueVisited, 0)}개</strong></div>
+          <div><span>차량 추정 이동시간</span><strong>{success ? fmt(currentRow?.estimated_scenario_s ?? (trace.objective === "time" ? run.objectiveCost : null)) + "초" : run.status === "NO_PATH" ? "경로 없음" : "미확정"}</strong><small>도로 속도와 선택 조건으로 계산한 추정치</small></div>
+          <div><span>경로 정확성</span><strong>{success ? "최적 비용 검증" : run.status === "NO_PATH" ? "도달 불가" : "미확정"}</strong><small>{success ? "같은 목표의 알고리즘 간 비용·경로 유효성 검증" : "시간 초과 후보는 최적 경로로 평가하지 않음"}</small></div>
           <div><span>컴퓨터 계산시간</span><strong>{run.status === "TIMEOUT" ? "2초 제한" : median?.median_search_ns == null ? "—" : fmt(median.median_search_ns / 1e6, 3) + "ms"}</strong><small>{run.status === "TIMEOUT" ? "완료 전에 제한시간으로 중단" : "같은 조건 10회 측정 중앙값"}</small></div>
         </div>
         {trace.experimentId === "condition" && <div className="sim-condition-summary">

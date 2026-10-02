@@ -105,8 +105,13 @@ function finishRoute(result: FinalSearchResult, final: FinalGraph, costs: Float6
 interface HeapEntry { f: number; g: number; seq: number; node: number }
 class Heap {
   private data: HeapEntry[] = [];
+  private smallerG: boolean;
+  constructor(smallerG = false) { this.smallerG = smallerG; }
   get size() { return this.data.length; }
-  private less(a: HeapEntry, b: HeapEntry) { return a.f < b.f || (a.f === b.f && (a.g > b.g || (a.g === b.g && a.seq < b.seq))); }
+  private less(a: HeapEntry, b: HeapEntry) {
+    return a.f < b.f || (a.f === b.f && ((this.smallerG ? a.g < b.g : a.g > b.g) ||
+      (a.g === b.g && (this.smallerG ? a.node < b.node : a.seq < b.seq))));
+  }
   push(value: HeapEntry) {
     const a = this.data;
     a.push(value);
@@ -134,7 +139,7 @@ class Heap {
 }
 
 export function finalSearch(final: FinalGraph, source: number, target: number, costs: Float64Array, algorithm: FinalAlgorithm,
-  options: { timeLimitMs?: number; heuristicScale?: number; recordTrace?: boolean; maxFrames?: number } = {}): FinalSearchResult {
+  options: { timeLimitMs?: number; heuristicScale?: number; recordTrace?: boolean; maxFrames?: number; smallerGTies?: boolean } = {}): FinalSearchResult {
   const g = final.graph, result = resultBase(algorithm);
   if (source < 0 || source >= g.n || target < 0 || target >= g.n) throw new Error("invalid source or target");
   if (costs.length !== g.m || Array.from(costs).some((v) => v < 0 || Number.isNaN(v))) throw new Error("invalid costs");
@@ -182,7 +187,7 @@ export function finalSearch(final: FinalGraph, source: number, target: number, c
     return result;
   }
   const d = new Float64Array(g.n).fill(Infinity), parent = new Int32Array(g.n).fill(-1), closed = new Uint8Array(g.n);
-  const heap = new Heap(), scale = algorithm === "astar" ? options.heuristicScale ?? 0 : 0;
+  const heap = new Heap(options.smallerGTies), scale = algorithm === "astar" ? options.heuristicScale ?? 0 : 0;
   let seq = 0, peak = 0;
   const push = (node: number, distance: number) => {
     const h = scale * Math.hypot(g.x[node] - g.x[target], g.y[node] - g.y[target]);

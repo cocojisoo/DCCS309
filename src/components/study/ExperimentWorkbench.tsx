@@ -13,7 +13,7 @@ const experiments: { id: Experiment; title: string; detail: string }[] = [
   { id: "condition", title: "3. 도로가 막히면?", detail: "같은 5km 지도 · 혼잡과 폐쇄" },
 ];
 
-export default function ExperimentWorkbench() {
+export default function ExperimentWorkbench({ basicOnly = false }: { basicOnly?: boolean }) {
   const [data, setData] = useState<{ summary: Summary; road: RoadJson } | null>(null);
   const [error, setError] = useState("");
   const [experiment, setExperiment] = useState<Experiment>("synthetic");
@@ -54,8 +54,8 @@ export default function ExperimentWorkbench() {
   const edges = experiment === "synthetic" ? summary.groups.find(g => g.experiment_id === "synthetic" && g.size_label === `n${n}`)?.graph_edges : stat?.edges;
   const changeExperiment = (next: Experiment) => { setExperiment(next); setSize(0); setCondition("normal"); setObjective(next === "condition" ? "time" : "distance"); };
   return <div className="lab-workbench">
-    <div className="lab-experiments" aria-label="실험 선택">{experiments.map(e => <button key={e.id} aria-pressed={experiment === e.id} onClick={() => changeExperiment(e.id)}>
-      <strong>{e.title}</strong><span>{e.detail}</span></button>)}</div>
+    <div className="lab-experiments" aria-label="지도 선택">{experiments.filter(e => !basicOnly || e.id !== "condition").map(e => <button key={e.id} aria-pressed={experiment === e.id} onClick={() => changeExperiment(e.id)}>
+      <strong>{basicOnly ? e.id === "synthetic" ? "가상 도로" : "조치원 실제 도로" : e.title}</strong><span>{e.detail}</span></button>)}</div>
     <section className="card lab-settings" aria-label="실험 조건">
       <div className="lab-section-title"><span className="lab-step">01</span><h2>실험 조건</h2><span className="muted text-sm">한 번에 한 조건씩 바꿔 비교하세요</span></div>
       <div className="lab-controls">
@@ -69,7 +69,7 @@ export default function ExperimentWorkbench() {
       <div className="lab-context" aria-label="현재 실험 조건"><strong>{experiment === "synthetic" ? "가상 도로" : `조치원 ${experiment === "condition" ? 5 : radius / 1000}km`}</strong><span>교차로 {fmt(nodes, 0)}개</span><span>방향 도로 {fmt(edges, 0)}개</span><span>{actualObjective === "distance" ? "거리 최소 · m" : "추정시간 최소 · 초"}</span><span>{experiment === "condition" ? conditions.find(c => c.id === condition)?.label : "정상 도로"}</span><span>{experiment === "condition" ? "Dijkstra · A* 비교" : "DFS 제한 2초"}</span></div>
     </section>
     {trace && entry ? <ExperimentPlayer key={entry.id} trace={trace} road={road} summary={summary} /> : <div className="card" role="status">선택한 조건의 탐색 기록을 불러오고 있습니다…</div>}
-    <div className="lab-bottom"><button className="btn" onClick={() => { if (experiment !== "condition" && size < 2) setSize(size + 1); else changeExperiment(experiment === "synthetic" ? "road" : experiment === "road" ? "condition" : "synthetic"); }}>{experiment !== "condition" && size < 2 ? "다음 크기와 비교 →" : experiment === "synthetic" ? "실제 조치원 도로로 →" : experiment === "road" ? "혼잡·폐쇄 실험으로 →" : "처음 실험으로 →"}</button><button className="btn" aria-expanded={evidence} onClick={() => setEvidence(!evidence)}>{evidence ? "전체 측정표 닫기" : "전체 측정표·연구 방법 보기"}</button></div>
+    <div className="lab-bottom"><button className="btn" onClick={() => { if (experiment !== "condition" && size < 2) setSize(size + 1); else changeExperiment(experiment === "synthetic" ? "road" : basicOnly ? "synthetic" : experiment === "road" ? "condition" : "synthetic"); }}>{experiment !== "condition" && size < 2 ? "다음 크기와 비교 →" : experiment === "synthetic" ? "실제 조치원 도로로 →" : basicOnly ? "가상 도로로 →" : experiment === "road" ? "혼잡·폐쇄 실험으로 →" : "처음 실험으로 →"}</button><button className="btn" aria-expanded={evidence} onClick={() => setEvidence(!evidence)}>{evidence ? "전체 측정표 닫기" : "전체 측정표·연구 방법 보기"}</button></div>
     {evidence && <FinalStudyView evidenceOnly />}
   </div>;
 }

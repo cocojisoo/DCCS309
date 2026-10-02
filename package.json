@@ -18,7 +18,8 @@
     "final:batch": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/study/final-batch.ts",
     "test:study": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test tests/study.test.ts",
     "test:final": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test tests/final.test.ts",
-    "test:final:results": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test tests/final-results.test.ts"
+    "test:final:results": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test tests/final-results.test.ts",
+    "test:research": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test tests/research.test.ts"
   },
   "dependencies": {
     "leaflet": "^1.9.4",
