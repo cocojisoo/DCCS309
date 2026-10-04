@@ -4,11 +4,16 @@ import { useEffect, useState } from "react";
 import { formatDistance, formatInt, formatMs } from "@/lib/format";
 import type { DemoFile, DemoIndexEntry, DemoRun } from "@/lib/study/demo";
 import type { StudyGraphJson } from "@/lib/study/graph";
-import { STUDY_ALGORITHMS } from "@/lib/study/search";
+import { STUDY_ALGORITHMS, type StudyAlgorithmId } from "@/lib/study/search";
 import SearchCanvas from "./SearchCanvas";
-import { ALGO_STYLE, fetchJson, STATUS_LABEL } from "./shared";
+import { ALGO_STYLE, fetchJson, formatTravel, STATUS_LABEL } from "./shared";
 
 const FPS = 12;
+
+/** 출발·도착 쌍 이름: "경로 1", "경로 2" … (작은 지도에서 고른 고정 쌍은 따로 표시) */
+export function pairLabel(i: number, track: 1 | 2) {
+  return `경로 ${i + 1}${track === 1 ? " (모든 크기 공통)" : ""}`;
+}
 
 export default function CompareView({ timeLimitS }: { timeLimitS: number }) {
   const [json, setJson] = useState<StudyGraphJson | null>(null);
@@ -40,7 +45,6 @@ export default function CompareView({ timeLimitS }: { timeLimitS: number }) {
 
   const pair = demo?.pairs[Math.min(pairIdx, (demo?.pairs.length ?? 1) - 1)];
   const maxFrames = pair ? Math.max(...STUDY_ALGORITHMS.map((a) => pair.runs[a.id].frames.length)) : 0;
-
   const done = frame >= maxFrames - 1;
   const running = playing && !done;
 
@@ -88,19 +92,20 @@ export default function CompareView({ timeLimitS }: { timeLimitS: number }) {
           </span>
         </label>
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="tabs" role="tablist" aria-label="출발·도착 쌍">
+          <div className="tabs" role="tablist" aria-label="출발·도착 경로">
             {entry.pairs.map((p, i) => (
               <button
                 key={p.id}
                 role="tab"
                 className="tab"
                 aria-selected={pairIdx === i}
+                title={p.id}
                 onClick={() => {
                   setPairIdx(i);
                   reset();
                 }}
               >
-                {p.track === 1 ? "트랙 1 (고정)" : "트랙 2"} · {p.id} · 직선 {formatDistance(p.straightM)}
+                {pairLabel(i, p.track)} · 직선 {formatDistance(p.straightM)}
               </button>
             ))}
           </div>
@@ -118,7 +123,14 @@ export default function CompareView({ timeLimitS }: { timeLimitS: number }) {
             >
               {running ? "⏸ 멈춤" : "▶ 탐색 시작"}
             </button>
-            <button className="btn" onClick={() => { setPlaying(false); setFrame(maxFrames - 1); }} disabled={!pair}>
+            <button
+              className="btn"
+              onClick={() => {
+                setPlaying(false);
+                setFrame(maxFrames - 1);
+              }}
+              disabled={!pair}
+            >
               결과로 ⏭
             </button>
           </div>
@@ -128,35 +140,48 @@ export default function CompareView({ timeLimitS }: { timeLimitS: number }) {
       {!demo || demo.label !== entry.label || !pair ? (
         <p className="muted text-sm">탐색 기록 불러오는 중…</p>
       ) : (
-        <div className="grid md:grid-cols-3 gap-3">
-          {STUDY_ALGORITHMS.map((a) => {
-            const run = pair.runs[a.id];
-            return (
-              <div key={a.id} className="flex flex-col gap-2">
-                <div className="flex items-baseline justify-between">
-                  <h3 className="font-semibold">
-                    <span className="swatch" style={{ background: ALGO_STYLE[a.id].color }} />
-                    {a.name} <span className="faint text-xs font-normal">{a.role}</span>
-                  </h3>
-                  <span className="faint text-xs">{ALGO_STYLE[a.id].markerLabel}</span>
-                </div>
-                <SearchCanvas json={json} demo={demo} od={pair.od} run={run} algo={a.id} frame={frame} timeLimitS={timeLimitS} />
-                <RunCard run={run} frame={frame} shortest={pair.runs.dijkstra.lengthM} />
-              </div>
-            );
-          })}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {STUDY_ALGORITHMS.map((a) => (
+            <div key={a.id} className="flex flex-col gap-2">
+              <AlgoHeading id={a.id} />
+              <SearchCanvas
+                json={json}
+                edgeIds={demo.edgeIds}
+                nodes={demo.nodes}
+                od={pair.od}
+                run={pair.runs[a.id]}
+                algo={a.id}
+                frame={frame}
+                timeLimitS={timeLimitS}
+              />
+              <RunCard algo={a.id} run={pair.runs[a.id]} frame={frame} shortest={pair.runs.dijkstra.lengthM} />
+            </div>
+          ))}
         </div>
       )}
       <p className="text-xs faint">
         옅은 표시는 방문한 교차로, 색 선은 지금 따라가는 길, 초록 점선은 DFS 의 현재 최고 기록 길, 굵은 검은 선은 최종 경로입니다. 각 방법은 자기
-        탐색을 최대 100장면으로 나눠 같은 속도로 재생합니다 (보여주는 장면만 줄이고 탐색은 줄이지 않음). 걸린 시간은 발표용 기록을 만들 때 1회 잰
-        값이고, 공식 값은 &lsquo;크기에 따른 변화&rsquo;에 있습니다.
+        탐색을 최대 100장면으로 나눠 같은 속도로 재생합니다 (보여주는 장면만 줄이고 탐색은 줄이지 않음). 탐색 시간은 발표용 기록을 만들 때 잰
+        값이고 (CCH 는 질의만, 전처리는 별도), 공식 값은 &lsquo;실험 결과&rsquo;에 있습니다. 이동 시간은 찾은 경로를 차량 30km/h 로 갈 때입니다.
       </p>
     </div>
   );
 }
 
-function RunCard({ run, frame, shortest }: { run: DemoRun; frame: number; shortest: number | null }) {
+export function AlgoHeading({ id }: { id: StudyAlgorithmId }) {
+  const a = STUDY_ALGORITHMS.find((x) => x.id === id)!;
+  return (
+    <div className="flex items-baseline justify-between gap-2">
+      <h3 className="font-semibold">
+        <span className="swatch" style={{ background: ALGO_STYLE[id].color }} />
+        {a.name} <span className="faint text-xs font-normal">{a.role}</span>
+      </h3>
+      <span className="faint text-xs whitespace-nowrap">{ALGO_STYLE[id].markerLabel}</span>
+    </div>
+  );
+}
+
+function RunCard({ algo, run, frame, shortest }: { algo: StudyAlgorithmId; run: DemoRun; frame: number; shortest: number | null }) {
   const last = run.frames.length - 1;
   const f = frame < 0 ? null : run.frames[Math.min(frame, last)];
   const finished = f !== null && frame >= last;
@@ -184,8 +209,13 @@ function RunCard({ run, frame, shortest }: { run: DemoRun; frame: number; shorte
           </span>
         )}
       </dd>
-      <dt className="muted">걸린 시간</dt>
-      <dd className="text-right">{finished ? formatMs(run.searchMs) : "—"}</dd>
+      <dt className="muted">이동 시간</dt>
+      <dd className="text-right">{!finished ? "—" : ok ? formatTravel(run.timeS) : "확인 못 함"}</dd>
+      <dt className="muted">탐색 시간</dt>
+      <dd className="text-right">
+        {finished ? formatMs(run.searchMs) : "—"}
+        {finished && algo === "cch" && <span className="faint text-xs"> (질의)</span>}
+      </dd>
       <dt className="muted">방문 횟수</dt>
       <dd className="text-right">{formatInt(f ? f.step : 0)}</dd>
       <dt className="muted">서로 다른 교차로</dt>

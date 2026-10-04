@@ -18,8 +18,8 @@ export const CLASSROOM_NODES = [
 ];
 
 /** 양방향 도로 [a, b, 길이]. DFS 는 이 순서대로 갈림길을 고르므로 아래쪽(B)부터 가 본다 */
-const ROADS: [string, string, number][] = [
-  ["S", "B", 160],
+export const CLASSROOM_ROADS: [string, string, number][] = [
+  ["S", "B", 165],
   ["S", "A", 155],
   ["S", "W", 150],
   ["W", "A", 210],
@@ -31,6 +31,9 @@ const ROADS: [string, string, number][] = [
   ["F", "T", 140],
 ];
 
+/** LPA* 교실에서 경로를 찾은 뒤 혼잡해지는 도로와 배율 (정답 경로 위의 D–F) */
+export const CLASSROOM_JAM: { a: string; b: string; factor: number } = { a: "D", b: "F", factor: 3 };
+
 export const CLASSROOM_SOURCE = 0;
 export const CLASSROOM_TARGET = CLASSROOM_NODES.length - 1;
 
@@ -39,7 +42,7 @@ export function classroomGraph(): StudyGraph {
   const from: number[] = [];
   const to: number[] = [];
   const len: number[] = [];
-  for (const [a, b, l] of ROADS) {
+  for (const [a, b, l] of CLASSROOM_ROADS) {
     from.push(id(a), id(b));
     to.push(id(b), id(a));
     len.push(l, l);

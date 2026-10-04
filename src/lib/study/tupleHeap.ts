@@ -12,9 +12,29 @@ export class TupleHeap {
     return this.v.length;
   }
 
+  /** 맨 위 원소의 키와 값 (비어 있으면 키는 Infinity) */
+  topA() {
+    return this.v.length ? this.a[0] : Infinity;
+  }
+  topB() {
+    return this.v.length ? this.b[0] : Infinity;
+  }
+  topC() {
+    return this.v.length ? this.c[0] : Infinity;
+  }
+  topValue() {
+    return this.v[0];
+  }
+
   /** i 번 원소의 키가 (a, b, c) 보다 작으면 음수, 크면 양수 */
   private cmp(i: number, a: number, b: number, c: number) {
-    return this.a[i] - a || this.b[i] - b || this.c[i] - c;
+    // 뺄셈 대신 비교를 써서 Infinity 끼리도 올바르게 비교한다
+    const A = this.a[i];
+    if (A !== a) return A < a ? -1 : 1;
+    const B = this.b[i];
+    if (B !== b) return B < b ? -1 : 1;
+    const C = this.c[i];
+    return C < c ? -1 : C > c ? 1 : 0;
   }
 
   private set(i: number, a: number, b: number, c: number, v: number) {

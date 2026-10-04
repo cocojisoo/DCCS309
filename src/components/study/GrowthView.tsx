@@ -5,9 +5,9 @@ import { formatDistance, formatInt, formatMs } from "@/lib/format";
 import { STUDY_ALGORITHMS } from "@/lib/study/search";
 import type { StudySummary, SummaryRow } from "@/lib/study/summary";
 import LogChart, { type LogSeries } from "./LogChart";
-import { ALGO_STYLE } from "./shared";
+import { ALGO_STYLE, formatTravel } from "./shared";
 
-const DASH: Record<string, string | undefined> = { dfs: "7 5", dijkstra: undefined, astar: "2 4" };
+const DASH: Record<string, string | undefined> = { dfs: "7 5", dijkstra: undefined, astar: "2 4", cch: "10 3 2 3", lpa: "4 2" };
 
 export default function GrowthView({ summary }: { summary: StudySummary }) {
   const [track, setTrack] = useState<1 | 2>(2);
@@ -36,10 +36,10 @@ export default function GrowthView({ summary }: { summary: StudySummary }) {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="tabs" role="tablist" aria-label="트랙">
           <button role="tab" className="tab" aria-selected={track === 1} onClick={() => setTrack(1)}>
-            트랙 1 · 지도만 키우기
+            같은 경로 · 지도만 키우기
           </button>
           <button role="tab" className="tab" aria-selected={track === 2} onClick={() => setTrack(2)}>
-            트랙 2 · 가는 거리도 키우기
+            먼 경로 · 거리도 함께 키우기
           </button>
         </div>
         <span className="text-xs faint">
@@ -56,10 +56,10 @@ export default function GrowthView({ summary }: { summary: StudySummary }) {
       )}
 
       <LogChart
-        title="지도 크기에 따른 걸린 시간"
-        subtitle={`쌍마다 ${summary.config.run.repeats}회 반복의 중간값 → 쌍들의 중간값 · 가로·세로 모두 로그 눈금`}
+        title="지도 크기에 따른 탐색 시간"
+        subtitle={`경로마다 ${summary.config.run.repeats}회 반복의 중간값 → 경로들의 중간값 · 가로·세로 모두 로그 눈금 · CCH 는 질의만 (전처리는 아래 표)`}
         xLabel="실제 교차로 수"
-        yLabel="걸린 시간 (ms)"
+        yLabel="탐색 시간 (ms)"
         series={seriesOf((r) => r.median_ms, formatMs)}
         formatY={(v) => (v >= 1 ? `${v.toLocaleString("ko-KR")}ms` : `${v}ms`)}
         refLine={{ y: limitMs, label: `DFS 제한시간 ${summary.config.run.dfs_time_limit_s}초` }}
@@ -89,6 +89,7 @@ export default function GrowthView({ summary }: { summary: StudySummary }) {
                 <th>방문 중간값</th>
                 <th>방문 ÷ 고유</th>
                 <th>길이 중간값</th>
+                <th>이동 시간</th>
               </tr>
             </thead>
             <tbody>
@@ -111,12 +112,46 @@ export default function GrowthView({ summary }: { summary: StudySummary }) {
                   <td>{formatInt(Math.round(r.median_visits))}</td>
                   <td>{r.median_visit_ratio.toFixed(r.median_visit_ratio >= 100 ? 0 : 2)}</td>
                   <td>{r.median_route_m === null ? "—" : formatDistance(r.median_route_m)}</td>
+                  <td>{formatTravel(r.median_route_s)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       </details>
+      {summary.log.cch?.length > 0 && (
+        <details className="card">
+          <summary className="cursor-pointer font-semibold">CCH 를 쓰기 전에 한 번 드는 시간 (크기별)</summary>
+          <p className="text-xs faint mt-2">
+            전처리는 도로 모양만 보고 지름길을 만드는 일(지도가 바뀔 때만), 커스터마이징은 지름길에 비용을 채우는 일(비용이 바뀔 때마다)입니다.
+            위 그래프의 CCH 탐색 시간에는 질의만 들어 있습니다.
+          </p>
+          <div className="table-wrap mt-2">
+            <table className="data">
+              <thead>
+                <tr>
+                  <th>크기</th>
+                  <th>교차로</th>
+                  <th>지름길</th>
+                  <th>전처리</th>
+                  <th>커스터마이징</th>
+                </tr>
+              </thead>
+              <tbody>
+                {summary.log.cch.map((c) => (
+                  <tr key={c.sizeLabel}>
+                    <td>{c.sizeLabel}</td>
+                    <td>{formatInt(c.nodes)}</td>
+                    <td>{formatInt(c.shortcuts)}</td>
+                    <td>{formatMs(c.prepMs)}</td>
+                    <td>{formatMs(c.customizeMs)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </details>
+      )}
     </div>
   );
 }

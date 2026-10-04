@@ -2,84 +2,62 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { CLASSROOM_NODES, CLASSROOM_SOURCE, CLASSROOM_TARGET, classroomGraph } from "@/lib/study/classroom";
-import { FINDERS } from "@/lib/study/finders";
-import { STUDY_ALGORITHMS, type StudyAlgorithmId, type TraceFrame } from "@/lib/study/search";
+import { classroomScene } from "@/lib/study/classroomScenes";
+import type { StudyAlgorithmId } from "@/lib/study/search";
 import { ALGO_STYLE } from "./shared";
 
 const W = 650;
 const H = 320;
 const sx = (x: number) => x + 10;
 const sy = (y: number) => H - y - 10;
-const name = (v: number) => CLASSROOM_NODES[v].name;
 
-const HOW: Record<StudyAlgorithmId, string> = {
-  dfs: "갈림길에서 첫 번째 길로 끝까지 들어가 보고, 막히거나 도착하면 한 칸 되돌아와 다음 길을 가 본다. 모든 길을 다 확인한 뒤 가장 짧은 것을 고른다.",
-  dijkstra: "아직 확정하지 않은 교차로 중 출발점에서 가장 가까운 곳을 하나씩 확정한다. 도착점을 확정하는 순간 멈춘다.",
-  astar: "다익스트라와 같지만 '지금까지 거리 + 도착점까지 직선거리'가 가장 작은 교차로부터 확정한다. 그래서 도착점 쪽을 먼저 본다.",
-};
-
-export default function ClassroomView() {
+/** 손으로 만든 교차로 8개짜리 지도에서 한 알고리즘의 탐색을 한 단계씩 보여 준다 */
+export default function ClassroomView({ algo }: { algo: StudyAlgorithmId }) {
   const g = useMemo(() => classroomGraph(), []);
-  const [algo, setAlgo] = useState<StudyAlgorithmId>("dfs");
+  const scene = useMemo(() => classroomScene(algo), [algo]);
   const [frame, setFrame] = useState(0);
   const [playing, setPlaying] = useState(false);
 
-  const result = useMemo(
-    () => FINDERS[algo](g, CLASSROOM_SOURCE, CLASSROOM_TARGET, { timeLimitMs: null, heuristicScale: 1, recordTrace: true, maxFrames: 10000 }),
-    [g, algo],
-  );
-  const frames = result.trace!.frames;
-  const order = result.trace!.order;
-  const f: TraceFrame = frames[Math.min(frame, frames.length - 1)];
-  const done = frame >= frames.length - 1;
+  const steps = scene.steps;
+  const f = steps[Math.min(frame, steps.length - 1)];
+  const done = frame >= steps.length - 1;
   const running = playing && !done;
 
   useEffect(() => {
     if (!running) return;
-    const id = setTimeout(() => setFrame((x) => x + 1), 900);
+    const id = setTimeout(() => setFrame((x) => x + 1), 1100);
     return () => clearTimeout(id);
   }, [running, frame]);
 
-  const pick = (a: StudyAlgorithmId) => {
-    setAlgo(a);
-    setFrame(0);
-    setPlaying(false);
-  };
-
-  const pathLen = (es: number[]) => es.reduce((s, e) => s + g.len[e], 0);
-  const hint = (v: number) => Math.hypot(g.x[v] - g.x[CLASSROOM_TARGET], g.y[v] - g.y[CLASSROOM_TARGET]);
   const road = (e: number) => e >> 1; // 양방향 도로는 간선 두 개씩 연달아 들어 있다
-  const visited = new Set(order.slice(0, f.visited));
+  const visited = new Set(f.visited);
   const pathRoads = new Set(f.path.map(road));
   const bestRoads = new Set((f.best ?? []).map(road));
-  const finalRoads = done && result.status === "SUCCESS" ? new Set(result.pathEdges.map(road)) : new Set<number>();
+  const finalRoads = new Set((f.final ?? []).map(road));
+  const jamRoads = new Set(f.jam && scene.jam ? scene.jam.edges.map(road) : []);
   const color = ALGO_STYLE[algo].color;
-
-  const describe = (x: TraceFrame) => {
-    const g0 = pathLen(x.path);
-    const route = [CLASSROOM_SOURCE, ...x.path.map((e) => g.to[e])].map(name).join("→");
-    if (algo === "dfs") {
-      if (x.current === CLASSROOM_TARGET) return `도착! 완성 경로 ${route} = ${g0}m${x.best && pathLen(x.best) === g0 ? " (최고 기록)" : ""}`;
-      return `${name(x.current)}에 들어감 · 지금 길 ${route} (${g0}m)`;
-    }
-    const tag = x.current === CLASSROOM_TARGET ? " → 도착점 확정, 멈춤" : "";
-    if (algo === "dijkstra") return `${name(x.current)} 확정 · 거리 ${g0}m${tag}`;
-    return `${name(x.current)} 확정 · 거리 ${g0} + 힌트 ${hint(x.current).toFixed(0)} = ${(g0 + hint(x.current)).toFixed(0)}${tag}`;
-  };
+  const shortcuts = (scene.shortcuts ?? []).slice(0, f.shortcutsShown ?? 0);
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="tabs" role="tablist" aria-label="알고리즘">
-          {STUDY_ALGORITHMS.map((a) => (
-            <button key={a.id} role="tab" className="tab" aria-selected={algo === a.id} onClick={() => pick(a.id)}>
-              {a.name}
-            </button>
-          ))}
-        </div>
+    <div className="flex flex-col gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span className="text-sm muted">
+          {f.phase ? <span className="badge mr-2">{f.phase}</span> : null}
+          {Math.min(frame + 1, steps.length)} / {steps.length} 단계
+        </span>
         <div className="flex flex-wrap gap-2">
-          <button className="btn" onClick={() => { setFrame(0); setPlaying(false); }}>처음</button>
-          <button className="btn" onClick={() => setFrame((x) => Math.max(0, x - 1))} disabled={frame === 0}>◀ 이전</button>
+          <button
+            className="btn"
+            onClick={() => {
+              setFrame(0);
+              setPlaying(false);
+            }}
+          >
+            처음
+          </button>
+          <button className="btn" onClick={() => setFrame((x) => Math.max(0, x - 1))} disabled={frame === 0}>
+            ◀ 이전
+          </button>
           <button
             className="btn btn-primary"
             onClick={() => {
@@ -89,11 +67,11 @@ export default function ClassroomView() {
           >
             {running ? "⏸ 멈춤" : "▶ 재생"}
           </button>
-          <button className="btn" onClick={() => setFrame((x) => Math.min(frames.length - 1, x + 1))} disabled={done}>한 단계 ▶</button>
+          <button className="btn" onClick={() => setFrame((x) => Math.min(steps.length - 1, x + 1))} disabled={done}>
+            한 단계 ▶
+          </button>
         </div>
       </div>
-
-      <p className="text-sm muted">{HOW[algo]}</p>
 
       <div className="grid md:grid-cols-[3fr_2fr] gap-4">
         <section className="card">
@@ -105,28 +83,54 @@ export default function ClassroomView() {
               const onFinal = finalRoads.has(r);
               const onPath = pathRoads.has(r);
               const onBest = bestRoads.has(r);
+              const onJam = jamRoads.has(r);
+              const mx = (sx(g.x[a]) + sx(g.x[b])) / 2;
+              const my = (sy(g.y[a]) + sy(g.y[b])) / 2;
               return (
                 <g key={r}>
+                  {onJam && <line x1={sx(g.x[a])} y1={sy(g.y[a])} x2={sx(g.x[b])} y2={sy(g.y[b])} stroke="var(--jam)" strokeWidth={11} strokeLinecap="round" opacity={0.45} />}
                   <line
-                    x1={sx(g.x[a])} y1={sy(g.y[a])} x2={sx(g.x[b])} y2={sy(g.y[b])}
-                    stroke={onFinal ? "var(--text)" : onPath ? color : onBest ? "var(--good)" : "var(--road)"}
-                    strokeWidth={onFinal ? 7 : onPath ? 5 : onBest ? 5 : 3}
+                    x1={sx(g.x[a])}
+                    y1={sy(g.y[a])}
+                    x2={sx(g.x[b])}
+                    y2={sy(g.y[b])}
+                    stroke={onFinal ? "var(--text)" : onPath ? color : onBest ? "var(--good)" : onJam ? "var(--jam)" : "var(--road)"}
+                    strokeWidth={onFinal ? 7 : onPath || onBest || onJam ? 5 : 3}
                     strokeDasharray={onBest && !onPath && !onFinal ? "8 5" : undefined}
                     strokeLinecap="round"
                   />
-                  <text x={(sx(g.x[a]) + sx(g.x[b])) / 2} y={(sy(g.y[a]) + sy(g.y[b])) / 2 - 6} textAnchor="middle" fontSize="12" fill="var(--text-3)">
-                    {g.len[e]}
+                  <text x={mx} y={my - 6} textAnchor="middle" fontSize="12" fill={onJam ? "var(--jam)" : "var(--text-3)"} fontWeight={onJam ? 700 : 400}>
+                    {onJam && scene.jam ? `${g.len[e]}×${scene.jam.factor}` : g.len[e]}
+                  </text>
+                </g>
+              );
+            })}
+            {shortcuts.map((sc, i) => {
+              const x1 = sx(g.x[sc.a]), y1 = sy(g.y[sc.a]), x2 = sx(g.x[sc.b]), y2 = sy(g.y[sc.b]);
+              // 원래 도로와 겹치지 않게 살짝 휘어서 그린다
+              const nx = -(y2 - y1), ny = x2 - x1;
+              const len = Math.hypot(nx, ny) || 1;
+              const cx = (x1 + x2) / 2 + (nx / len) * 28, cy = (y1 + y2) / 2 + (ny / len) * 28;
+              const isNew = i === shortcuts.length - 1 && f.phase === "전처리";
+              return (
+                <g key={`sc${i}`}>
+                  <path d={`M${x1},${y1} Q${cx},${cy} ${x2},${y2}`} fill="none" stroke="var(--algo-cch)" strokeWidth={isNew ? 3.5 : 2.2} strokeDasharray="7 4" />
+                  <text x={cx} y={cy} textAnchor="middle" fontSize="11" fill="var(--algo-cch)" fontWeight={700}>
+                    {sc.cost}
                   </text>
                 </g>
               );
             })}
             {CLASSROOM_NODES.map((n, v) => {
-              const isCur = f.current === v && !done;
+              const isCur = f.current === v;
               const seen = visited.has(v);
+              const label = f.labels?.[v];
               return (
                 <g key={n.name}>
                   <circle
-                    cx={sx(n.x)} cy={sy(n.y)} r={isCur ? 19 : 16}
+                    cx={sx(n.x)}
+                    cy={sy(n.y)}
+                    r={isCur ? 19 : 16}
                     fill={seen ? color : "var(--surface)"}
                     fillOpacity={seen ? (isCur ? 1 : 0.35) : 1}
                     stroke={isCur ? "var(--text)" : v === CLASSROOM_SOURCE || v === CLASSROOM_TARGET ? "var(--text)" : "var(--road)"}
@@ -135,40 +139,80 @@ export default function ClassroomView() {
                   <text x={sx(n.x)} y={sy(n.y) + 5} textAnchor="middle" fontSize="15" fontWeight="700" fill="var(--text)">
                     {n.name}
                   </text>
+                  {scene.ranks && (
+                    <g>
+                      <circle cx={sx(n.x) + 16} cy={sy(n.y) - 15} r={9} fill="var(--algo-cch)" />
+                      <text x={sx(n.x) + 16} y={sy(n.y) - 11} textAnchor="middle" fontSize="11" fontWeight="700" fill="#fff">
+                        {scene.ranks[v]}
+                      </text>
+                    </g>
+                  )}
+                  {label && (
+                    <text x={sx(n.x)} y={sy(n.y) + 34} textAnchor="middle" fontSize="12" fontWeight="700" fill={color}>
+                      {label}
+                    </text>
+                  )}
                 </g>
               );
             })}
           </svg>
-          <div className="flex flex-wrap gap-4 text-xs muted mt-2">
-            <span><span className="swatch" style={{ background: color }} />지금 보고 있는 교차로 (진한 색, 굵은 테두리)</span>
-            <span><span className="swatch" style={{ background: color, opacity: 0.35 }} />이미 본 교차로</span>
-            <span><span className="swatch" style={{ background: color }} />지금 따라가는 길</span>
-            {algo === "dfs" && <span><span className="swatch" style={{ background: "var(--good)" }} />현재 최고 기록 길 (점선)</span>}
-            <span><span className="swatch" style={{ background: "var(--text)" }} />최종 경로</span>
+          <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs muted mt-2">
+            <span>
+              <span className="swatch" style={{ background: color }} />
+              지금 보는 교차로 (굵은 테두리)
+            </span>
+            <span>
+              <span className="swatch" style={{ background: color, opacity: 0.35 }} />
+              이미 본 교차로
+            </span>
+            {algo === "dfs" && (
+              <>
+                <span>
+                  <span className="swatch" style={{ background: color }} />
+                  지금 따라가는 길
+                </span>
+                <span>
+                  <span className="swatch" style={{ background: "var(--good)" }} />
+                  현재 최고 기록 길 (점선)
+                </span>
+              </>
+            )}
+            {(algo === "dijkstra" || algo === "astar") && <span>교차로 아래 숫자 = 출발점에서의 거리</span>}
+            {algo === "cch" && (
+              <>
+                <span>
+                  <span className="swatch" style={{ background: "var(--algo-cch)" }} />
+                  보라 동그라미 = 중요도 순위, 보라 점선 = 지름길
+                </span>
+                <span>↑ 출발 쪽 비용 · ↓ 도착 쪽 비용</span>
+              </>
+            )}
+            {algo === "lpa" && (
+              <>
+                <span>
+                  <span className="swatch" style={{ background: "var(--jam)" }} />
+                  혼잡 도로
+                </span>
+                <span>숫자 = 알고 있는 비용, ? = 다시 계산 중</span>
+              </>
+            )}
+            <span>
+              <span className="swatch" style={{ background: "var(--text)" }} />
+              최종 경로
+            </span>
           </div>
         </section>
 
         <section className="card flex flex-col gap-2">
-          <div className="flex items-baseline justify-between">
-            <h2 className="font-semibold">탐색 순서</h2>
-            <span className="text-xs faint num">
-              {Math.min(frame + 1, frames.length)} / {frames.length} 단계
-            </span>
-          </div>
-          <ol className="text-sm flex flex-col gap-1 max-h-72 overflow-auto num">
-            {frames.slice(0, frame + 1).map((x, i) => (
+          <h3 className="font-semibold">진행 순서</h3>
+          <ol className="text-sm flex flex-col gap-1 max-h-80 overflow-auto num">
+            {steps.slice(0, frame + 1).map((x, i) => (
               <li key={i} className={i === frame ? "font-semibold" : "muted"}>
-                {i + 1}. {describe(x)}
+                {i + 1}. {x.text}
               </li>
             ))}
           </ol>
-          {done && (
-            <p className="text-sm mt-2 pt-2 border-t border-border">
-              <b>결과:</b> {[CLASSROOM_SOURCE, ...result.pathEdges.map((e) => g.to[e])].map(name).join(" → ")} = {result.lengthM}m · 방문{" "}
-              {result.visitCount}번 (서로 다른 교차로 {result.uniqueVisited}개)
-              {result.completePaths !== null && ` · 완성해 본 경로 ${result.completePaths}개`}
-            </p>
-          )}
+          {done && <p className="text-sm mt-auto pt-2 border-t border-border">{scene.result}</p>}
         </section>
       </div>
     </div>

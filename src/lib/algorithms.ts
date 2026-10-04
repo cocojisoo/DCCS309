@@ -1,62 +1,21 @@
+import { cchMetricFor } from "./study/cch";
+import { FINDERS } from "./study/finders";
+import { buildStudyGraph, projector, type StudyGraph } from "./study/graph";
+import { STUDY_ALGORITHMS, type SearchStatus, type StudyAlgorithmId } from "./study/search";
 import { PENALTY_SEC } from "./config";
-import { haversine, type Graph } from "./graph";
-import { MinHeap } from "./heap";
+import type { Graph } from "./graph";
 
-export type AlgorithmId = "dijkstra" | "astar" | "bidijkstra" | "greedy" | "bellmanford";
+/**
+ * 대시보드용 길찾기. 알고리즘 구현은 실험(src/lib/study)과 같은 것을 쓰고,
+ * 여기서는 비용(이동시간 + 현실 보정)을 만들고 결과를 대시보드 형식으로 바꾼다.
+ */
+export type AlgorithmId = StudyAlgorithmId;
 
-export interface AlgorithmInfo {
-  id: AlgorithmId;
-  name: string;
-  short: string;
-  complexity: string;
-  optimal: boolean;
-  summary: string;
-}
+export const ALGORITHMS = STUDY_ALGORITHMS;
+export const ALGORITHM_BY_ID = Object.fromEntries(ALGORITHMS.map((a) => [a.id, a])) as Record<AlgorithmId, (typeof ALGORITHMS)[number]>;
 
-export const ALGORITHMS: AlgorithmInfo[] = [
-  {
-    id: "dijkstra",
-    name: "다익스트라",
-    short: "Dijkstra",
-    complexity: "O((V + E) log V)",
-    optimal: true,
-    summary: "출발지에서 가까운 노드부터 차례로 확정한다. 목적지 방향을 모르므로 원 모양으로 퍼지며 탐색한다.",
-  },
-  {
-    id: "astar",
-    name: "A*",
-    short: "A*",
-    complexity: "O((V + E) log V), 실제로는 훨씬 적게 탐색",
-    optimal: true,
-    summary: "다익스트라에 '목적지까지 남은 직선거리 ÷ 속도' 휴리스틱을 더해 목적지 쪽 노드를 먼저 확정한다. 휴리스틱이 실제 비용을 넘지 않으므로 최적 경로를 보장한다.",
-  },
-  {
-    id: "bidijkstra",
-    name: "양방향 다익스트라",
-    short: "Bi-Dijkstra",
-    complexity: "O((V + E) log V), 탐색 반경이 절반인 원 두 개",
-    optimal: true,
-    summary: "출발지와 목적지에서 동시에 다익스트라를 돌리고, 두 탐색이 만나 더 나은 경로가 없음이 증명되면 멈춘다.",
-  },
-  {
-    id: "greedy",
-    name: "탐욕 최우선 탐색",
-    short: "Greedy Best-First",
-    complexity: "O((V + E) log V), 보통 매우 적게 탐색",
-    optimal: false,
-    summary: "지금까지 온 비용은 무시하고 목적지까지 직선거리가 가장 짧은 노드만 따라간다. 빠르지만 최적 경로를 보장하지 않는다.",
-  },
-  {
-    id: "bellmanford",
-    name: "벨만-포드",
-    short: "Bellman-Ford",
-    complexity: "O(V · E)",
-    optimal: true,
-    summary: "모든 간선을 반복해서 완화(relax)한다. 음수 가중치도 다룰 수 있지만 도로망처럼 가중치가 모두 양수이면 가장 느리다.",
-  },
-];
-
-export const ALGORITHM_BY_ID = Object.fromEntries(ALGORITHMS.map((a) => [a.id, a])) as Record<AlgorithmId, AlgorithmInfo>;
+/** DFS 한 번의 제한시간 (크기별 실험과 같은 2초) */
+export const DFS_TIME_LIMIT_MS = 2000;
 
 export interface SearchOptions {
   source: number;
@@ -70,6 +29,7 @@ export interface SearchOptions {
 }
 
 export interface SearchResult {
+  status: SearchStatus;
   found: boolean;
   /** 경로의 간선 번호 (출발 → 도착 순) */
   pathEdges: number[];
@@ -78,253 +38,108 @@ export interface SearchResult {
   penaltySec: number;
   /** 자동차: 통과한 교차로 수, 도보: 건넌 횡단보도 수 */
   penaltyCount: number;
-  /** 확정(settle)한 노드 수. 벨만-포드는 한 번이라도 도달한 노드 수 */
+  /** 확정(방문)한 서로 다른 노드 수 */
   visited: number;
-  /** 간선 완화 시도 횟수 */
+  /** 간선(CCH 는 지름길) 살펴본 횟수 */
   relaxations: number;
-  /** 벨만-포드 반복 횟수 */
-  rounds?: number;
-  /** 탐색 트리에 추가된 간선 순서 (record 일 때만) */
-  explored: number[];
+  /** 탐색 순서대로 [어디서, 어디로] 노드 쌍 (record 일 때만). CCH 는 지름길이라 직선으로 그려진다 */
+  explored: [number, number][];
 }
 
-type CostFn = (e: number) => number;
+const studyGraphs = new WeakMap<Graph, StudyGraph>();
 
-function costFn(g: Graph, o: SearchOptions): CostFn {
-  const { len, to, isIntersection, crossing, crossingLen } = g;
-  const speed = o.speed;
-  if (!o.penalties) return (e) => len[e] / speed;
-  if (g.mode === "car") {
-    const t = o.target;
-    const p = PENALTY_SEC.intersection;
-    return (e) => len[e] / speed + (isIntersection[to[e]] && to[e] !== t ? p : 0);
+/** 대시보드 그래프를 실험용 그래프 형식으로 (평면 좌표를 붙인다) */
+export function studyGraphOf(g: Graph): StudyGraph {
+  let sg = studyGraphs.get(g);
+  if (!sg) {
+    let lat0 = 0, lng0 = 0;
+    for (let v = 0; v < g.n; v++) {
+      lat0 += g.lat[v] / g.n;
+      lng0 += g.lng[v] / g.n;
+    }
+    const project = projector(lat0, lng0);
+    const x = new Float64Array(g.n);
+    const y = new Float64Array(g.n);
+    for (let v = 0; v < g.n; v++) [x[v], y[v]] = project(g.lat[v], g.lng[v]);
+    sg = buildStudyGraph({ lat: g.lat, lng: g.lng, x, y, from: g.from, to: g.to, len: g.len });
+    studyGraphs.set(g, sg);
   }
-  const p = PENALTY_SEC.crossing;
-  // 횡단보도 way 가 여러 간선으로 쪼개져 있어도 한 번 건너면 정확히 p 초가 되도록 길이 비율로 나눈다
-  return (e) => {
-    const c = crossing[e];
-    return len[e] / speed + (c >= 0 ? (p * len[e]) / crossingLen[c] : 0);
-  };
+  return sg;
 }
 
-function summarize(g: Graph, o: SearchOptions, pathEdges: number[], cost: CostFn) {
-  let distanceM = 0;
-  let costSec = 0;
-  const crossings = new Set<number>();
-  let intersections = 0;
-  for (const e of pathEdges) {
-    distanceM += g.len[e];
-    costSec += cost(e);
+const weightCache = new WeakMap<Graph, Map<string, Float64Array>>();
+
+/**
+ * 간선 비용(초) = 길이 ÷ 속도 (+ 현실 보정).
+ * 같은 조건이면 같은 배열을 돌려준다 → CCH 커스터마이징도 한 번만 한다.
+ */
+export function edgeCosts(g: Graph, o: Pick<SearchOptions, "speed" | "penalties" | "target">): Float64Array {
+  let byKey = weightCache.get(g);
+  if (!byKey) {
+    byKey = new Map();
+    weightCache.set(g, byKey);
+  }
+  // 자동차 교차로 페널티는 도착 교차로에는 붙이지 않으므로 도착점마다 비용이 다르다
+  const key = `${o.speed}|${o.penalties}|${o.penalties && g.mode === "car" ? o.target : ""}`;
+  let w = byKey.get(key);
+  if (w) return w;
+  w = new Float64Array(g.m);
+  const p = PENALTY_SEC;
+  for (let e = 0; e < g.m; e++) {
+    let c = g.len[e] / o.speed;
     if (o.penalties) {
-      if (g.mode === "car" && g.isIntersection[g.to[e]] && g.to[e] !== o.target) intersections++;
-      if (g.mode === "walk" && g.crossing[e] >= 0) crossings.add(g.crossing[e]);
+      if (g.mode === "car" && g.isIntersection[g.to[e]] && g.to[e] !== o.target) c += p.intersection;
+      // 횡단보도 way 가 여러 간선으로 쪼개져 있어도 한 번 건너면 정확히 p 초가 되도록 길이 비율로 나눈다
+      if (g.mode === "walk" && g.crossing[e] >= 0) c += (p.crossing * g.len[e]) / g.crossingLen[g.crossing[e]];
     }
+    w[e] = c;
   }
-  const penaltySec = o.penalties ? costSec - distanceM / o.speed : 0;
-  const penaltyCount = g.mode === "car" ? intersections : crossings.size;
-  return { distanceM, costSec, penaltySec: Math.max(0, penaltySec), penaltyCount };
-}
-
-function tracePath(g: Graph, parentEdge: Int32Array, target: number): number[] {
-  const path: number[] = [];
-  let v = target;
-  while (parentEdge[v] >= 0) {
-    const e = parentEdge[v];
-    path.push(e);
-    v = g.from[e];
-  }
-  return path.reverse();
-}
-
-function emptyResult(): SearchResult {
-  return { found: false, pathEdges: [], costSec: Infinity, distanceM: 0, penaltySec: 0, penaltyCount: 0, visited: 0, relaxations: 0, explored: [] };
-}
-
-/** 다익스트라와 A*, 탐욕 탐색은 우선순위 함수만 다르다. */
-function bestFirst(g: Graph, o: SearchOptions, kind: "dijkstra" | "astar" | "greedy"): SearchResult {
-  const { source: s, target: t, speed } = o;
-  const cost = costFn(g, o);
-  const dist = new Float64Array(g.n).fill(Infinity);
-  const parentEdge = new Int32Array(g.n).fill(-1);
-  const closed = new Uint8Array(g.n);
-  const tLat = g.lat[t];
-  const tLng = g.lng[t];
-  const h = (v: number) => haversine(g.lat[v], g.lng[v], tLat, tLng) / speed;
-
-  const heap = new MinHeap();
-  dist[s] = 0;
-  heap.push(kind === "dijkstra" ? 0 : h(s), s);
-  const res = emptyResult();
-
-  while (heap.size) {
-    const u = heap.pop();
-    if (closed[u]) continue;
-    closed[u] = 1;
-    res.visited++;
-    if (o.record && parentEdge[u] >= 0) res.explored.push(parentEdge[u]);
-    if (u === t) break;
-    for (let i = g.outStart[u]; i < g.outStart[u + 1]; i++) {
-      const e = g.outEdge[i];
-      const v = g.to[e];
-      if (closed[v]) continue;
-      res.relaxations++;
-      if (kind === "greedy") {
-        // 탐욕 탐색: 처음 발견한 경로를 그대로 쓴다 (비용 비교 없음)
-        if (dist[v] !== Infinity) continue;
-        dist[v] = dist[u] + cost(e);
-        parentEdge[v] = e;
-        heap.push(h(v), v);
-        continue;
-      }
-      const nd = dist[u] + cost(e);
-      if (nd < dist[v]) {
-        dist[v] = nd;
-        parentEdge[v] = e;
-        heap.push(kind === "astar" ? nd + h(v) : nd, v);
-      }
-    }
-  }
-
-  if (!closed[t]) return res;
-  res.found = true;
-  res.pathEdges = tracePath(g, parentEdge, t);
-  Object.assign(res, summarize(g, o, res.pathEdges, cost));
-  return res;
-}
-
-function bidirectionalDijkstra(g: Graph, o: SearchOptions): SearchResult {
-  const { source: s, target: t } = o;
-  const cost = costFn(g, o);
-  const distF = new Float64Array(g.n).fill(Infinity);
-  const distB = new Float64Array(g.n).fill(Infinity);
-  const parF = new Int32Array(g.n).fill(-1);
-  const parB = new Int32Array(g.n).fill(-1);
-  const closedF = new Uint8Array(g.n);
-  const closedB = new Uint8Array(g.n);
-  const heapF = new MinHeap();
-  const heapB = new MinHeap();
-  const res = emptyResult();
-
-  distF[s] = 0;
-  distB[t] = 0;
-  heapF.push(0, s);
-  heapB.push(0, t);
-  let best = s === t ? 0 : Infinity;
-  let meetEdge = -1;
-
-  while (heapF.size && heapB.size) {
-    if (heapF.peekKey() + heapB.peekKey() >= best) break;
-    const forward = heapF.peekKey() <= heapB.peekKey();
-    if (forward) {
-      const u = heapF.pop();
-      if (closedF[u]) continue;
-      closedF[u] = 1;
-      res.visited++;
-      if (o.record && parF[u] >= 0) res.explored.push(parF[u]);
-      for (let i = g.outStart[u]; i < g.outStart[u + 1]; i++) {
-        const e = g.outEdge[i];
-        const v = g.to[e];
-        res.relaxations++;
-        const nd = distF[u] + cost(e);
-        if (nd < distF[v]) {
-          distF[v] = nd;
-          parF[v] = e;
-          heapF.push(nd, v);
-        }
-        if (distB[v] !== Infinity && distF[u] + cost(e) + distB[v] < best) {
-          best = distF[u] + cost(e) + distB[v];
-          meetEdge = e;
-        }
-      }
-    } else {
-      const u = heapB.pop();
-      if (closedB[u]) continue;
-      closedB[u] = 1;
-      res.visited++;
-      if (o.record && parB[u] >= 0) res.explored.push(parB[u]);
-      for (let i = g.inStart[u]; i < g.inStart[u + 1]; i++) {
-        const e = g.inEdge[i];
-        const x = g.from[e];
-        res.relaxations++;
-        const nd = distB[u] + cost(e);
-        if (nd < distB[x]) {
-          distB[x] = nd;
-          parB[x] = e;
-          heapB.push(nd, x);
-        }
-        if (distF[x] !== Infinity && distF[x] + cost(e) + distB[u] < best) {
-          best = distF[x] + cost(e) + distB[u];
-          meetEdge = e;
-        }
-      }
-    }
-  }
-
-  if (best === Infinity) return res;
-  const path: number[] = [];
-  if (meetEdge >= 0) {
-    path.push(...tracePath(g, parF, g.from[meetEdge]), meetEdge);
-    let v = g.to[meetEdge];
-    while (parB[v] >= 0) {
-      path.push(parB[v]);
-      v = g.to[parB[v]];
-    }
-  }
-  res.found = true;
-  res.pathEdges = path;
-  Object.assign(res, summarize(g, o, path, cost));
-  return res;
-}
-
-function bellmanFord(g: Graph, o: SearchOptions): SearchResult {
-  const { source: s, target: t } = o;
-  const cost = costFn(g, o);
-  const dist = new Float64Array(g.n).fill(Infinity);
-  const parentEdge = new Int32Array(g.n).fill(-1);
-  const res = emptyResult();
-  dist[s] = 0;
-  res.visited = 1;
-  let rounds = 0;
-
-  for (let round = 1; round < g.n; round++) {
-    rounds = round;
-    let changed = false;
-    for (let e = 0; e < g.m; e++) {
-      const du = dist[g.from[e]];
-      if (du === Infinity) continue;
-      res.relaxations++;
-      const v = g.to[e];
-      const nd = du + cost(e);
-      if (nd < dist[v]) {
-        if (dist[v] === Infinity) {
-          res.visited++;
-          if (o.record) res.explored.push(e);
-        }
-        dist[v] = nd;
-        parentEdge[v] = e;
-        changed = true;
-      }
-    }
-    if (!changed) break;
-  }
-
-  res.rounds = rounds;
-  if (dist[t] === Infinity) return res;
-  res.found = true;
-  res.pathEdges = tracePath(g, parentEdge, t);
-  Object.assign(res, summarize(g, o, res.pathEdges, cost));
-  return res;
+  byKey.set(key, w);
+  return w;
 }
 
 export function runAlgorithm(id: AlgorithmId, g: Graph, o: SearchOptions): SearchResult {
-  switch (id) {
-    case "dijkstra":
-    case "astar":
-    case "greedy":
-      return bestFirst(g, o, id);
-    case "bidijkstra":
-      return bidirectionalDijkstra(g, o);
-    case "bellmanford":
-      return bellmanFord(g, o);
+  const sg = studyGraphOf(g);
+  const w = edgeCosts(g, o);
+  const r = FINDERS[id](sg, o.source, o.target, {
+    weights: w,
+    // 힌트 = 직선거리 ÷ 속도. 보정은 더하기만 하므로 실제 비용을 넘지 않는다 (좌표 반올림 여유 1%)
+    heuristicScale: 0.99 / o.speed,
+    timeLimitMs: id === "dfs" ? DFS_TIME_LIMIT_MS : null,
+    recordTrace: o.record,
+    maxFrames: 2,
+  });
+
+  const found = r.status === "SUCCESS";
+  let penaltyCount = 0;
+  if (found && o.penalties) {
+    const crossings = new Set<number>();
+    for (const e of r.pathEdges) {
+      if (g.mode === "car" && g.isIntersection[g.to[e]] && g.to[e] !== o.target) penaltyCount++;
+      if (g.mode === "walk" && g.crossing[e] >= 0) crossings.add(g.crossing[e]);
+    }
+    if (g.mode === "walk") penaltyCount = crossings.size;
   }
+  const explored: [number, number][] = [];
+  if (r.trace) r.trace.order.forEach((v, i) => r.trace!.via[i] >= 0 && explored.push([r.trace!.via[i], v]));
+  const costSec = found ? r.cost! : NaN;
+  const distanceM = found ? r.lengthM! : NaN;
+  return {
+    status: r.status,
+    found,
+    pathEdges: r.pathEdges,
+    costSec,
+    distanceM,
+    penaltySec: found && o.penalties ? Math.max(0, costSec - distanceM / o.speed) : 0,
+    penaltyCount,
+    visited: r.uniqueVisited,
+    relaxations: r.relaxations,
+    explored,
+  };
+}
+
+/** CCH 전처리 · 커스터마이징에 든 시간 (질의 시간과 따로 보여 준다) */
+export function cchSetupCost(g: Graph, o: Pick<SearchOptions, "speed" | "penalties" | "target">) {
+  const m = cchMetricFor(studyGraphOf(g), edgeCosts(g, o));
+  return { prepMs: m.prep.prepMs, customizeMs: m.customizeMs, shortcuts: m.prep.shortcuts };
 }

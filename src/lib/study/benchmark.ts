@@ -3,7 +3,8 @@ import { FINDERS } from "./finders.ts";
 import { buildLadder, type LadderStep } from "./ladder.ts";
 import { localIndex, pickFixedPairs, pickGrowingPairs, type OdPair } from "./od.ts";
 import { deriveSeed, seededRandom, shuffle } from "./rng.ts";
-import { checkHeuristic, checkRoute, STUDY_ALGORITHMS, type SearchStatus, type StudyAlgorithmId, type StudySearchResult } from "./search.ts";
+import { cchMetricFor } from "./cch.ts";
+import { checkHeuristic, checkRoute, emptyResult, STUDY_ALGORITHMS, type SearchStatus, type StudyAlgorithmId, type StudySearchResult } from "./search.ts";
 
 /** configs/study.json */
 export interface StudyConfig {
@@ -15,8 +16,34 @@ export interface StudyConfig {
   track_growing_od: { pairs_max: number; straight_distance_ratio: [number, number] };
   run: { repeats: number; warmup: number; dfs_time_limit_s: number; shuffle_algorithm_order: boolean };
   astar: { heuristic_scale: number };
+  /** 이동 시간 계산용 차량 속도 (정상 상태는 모든 도로 같은 속도) */
+  travel: { car_speed_kmh: number };
   demo: { max_frames: number; fixed_pairs: number; growing_pairs: number };
+  traffic: TrafficConfig;
 }
+
+/** 혼잡 · 폐쇄 실험 설정 */
+export interface TrafficConfig {
+  /** 실험할 지도 크기 (크기 사다리의 이름) */
+  size_label: string;
+  /** 경로(출발·도착 쌍) 수: 이 크기의 트랙 2 쌍 앞에서부터 */
+  pairs: number;
+  algorithms: StudyAlgorithmId[];
+  /** 혼잡 도로의 이동시간 배율 범위 */
+  congestion_factor: [number, number];
+  /** 정상 경로 위에서 혼잡으로 만들 도로 비율 */
+  congestion_on_route_ratio: number;
+  /** 정상 경로와 상관없이 지도 전체에서 혼잡으로 만들 도로 비율 */
+  congestion_random_ratio: number;
+  /** 정상 경로 위에서 막을 도로 수 */
+  closures_on_route: number;
+  /** 지도 전체에서 막을 도로 수 */
+  closures_random: number;
+  repeats: number;
+}
+
+/** 이동 시간(초) = 길이 ÷ 속도 */
+export const travelSeconds = (lengthM: number, c: StudyConfig) => lengthM / ((c.travel.car_speed_kmh * 1000) / 3600);
 
 /** results/raw_runs.csv 의 한 줄 (PROJECT_BLUEPRINT 7.5) */
 export interface RawRun {
@@ -37,6 +64,8 @@ export interface RawRun {
   unique_visited: number;
   complete_paths: number | null;
   route_length_m: number | null;
+  /** 찾은 길을 차량(travel.car_speed_kmh)으로 갈 때 이동 시간(초) */
+  route_time_s: number | null;
   route_edge_ids: string;
   error_reason: string;
 }
@@ -44,7 +73,7 @@ export interface RawRun {
 export const RAW_COLUMNS: (keyof RawRun)[] = [
   "run_id", "track", "size_label", "graph_nodes", "graph_edges", "od_id", "source", "target",
   "od_straight_m", "algorithm", "repetition", "status", "search_ms", "visit_count",
-  "unique_visited", "complete_paths", "route_length_m", "route_edge_ids", "error_reason",
+  "unique_visited", "complete_paths", "route_length_m", "route_time_s", "route_edge_ids", "error_reason",
 ];
 
 /** 공식 실험 전에 정해지는 것들: 크기 사다리, 출발·도착 쌍, 힌트 검사 */
@@ -79,6 +108,8 @@ export function timedRun(
 ): { result: StudySearchResult; ms: number } {
   const timeLimitMs = algo === "dfs" ? c.run.dfs_time_limit_s * 1000 : null;
   const opts = { timeLimitMs, heuristicScale: c.astar.heuristic_scale };
+  // CCH 의 전처리 · 커스터마이징은 지도마다 한 번이므로 질의 시간에 넣지 않는다 (따로 기록)
+  if (algo === "cch") cchMetricFor(g, g.len);
   gc?.();
   const t0 = performance.now();
   let result: StudySearchResult;
@@ -86,10 +117,7 @@ export function timedRun(
     result = FINDERS[algo](g, s, t, opts);
   } catch (e) {
     const ms = performance.now() - t0;
-    return {
-      ms,
-      result: { status: "ERROR", pathEdges: [], lengthM: null, visitCount: 0, uniqueVisited: 0, completePaths: null, bestSoFarM: null, errorReason: e instanceof Error ? e.message : String(e) },
-    };
+    return { ms, result: { ...emptyResult(), status: "ERROR", errorReason: e instanceof Error ? e.message : String(e) } };
   }
   const ms = performance.now() - t0;
   if (result.status === "SUCCESS") {
@@ -111,10 +139,23 @@ export interface StudyRunLog {
   excluded: { track: 1 | 2; sizeLabel: string; odId: string; reason: string }[];
   /** 성공한 방법끼리 길이가 0.01m 넘게 다른 경우 */
   mismatches: { track: 1 | 2; sizeLabel: string; odId: string; repetition: number; lengths: Partial<Record<StudyAlgorithmId, number>> }[];
+  /** 크기마다 CCH 를 쓰기 전에 한 번 드는 비용 (질의 시간과 따로) */
+  cch: { sizeLabel: string; nodes: number; prepMs: number; customizeMs: number; arcs: number; shortcuts: number }[];
 }
 
 export function runStudy(plan: StudyPlan, c: StudyConfig, hooks: StudyHooks): StudyRunLog {
-  const log: StudyRunLog = { excluded: [], mismatches: [] };
+  const log: StudyRunLog = { excluded: [], mismatches: [], cch: [] };
+  for (const step of plan.ladder) {
+    const m = cchMetricFor(step.graph, step.graph.len);
+    log.cch.push({
+      sizeLabel: step.label,
+      nodes: step.graph.n,
+      prepMs: m.prep.prepMs,
+      customizeMs: m.customizeMs,
+      arcs: m.prep.arcs,
+      shortcuts: m.prep.shortcuts,
+    });
+  }
   const algos = STUDY_ALGORITHMS.map((a) => a.id);
   let runId = 0;
   const jobs: { track: 1 | 2; step: LadderStep; pairs: OdPair[] }[] = [
@@ -160,6 +201,7 @@ export function runStudy(plan: StudyPlan, c: StudyConfig, hooks: StudyHooks): St
             unique_visited: r.uniqueVisited,
             complete_paths: r.completePaths,
             route_length_m: ok ? r.lengthM : null,
+            route_time_s: ok ? travelSeconds(r.lengthM!, c) : null,
             route_edge_ids: ok ? r.pathEdges.map((e) => g.origEdge[e]).join(" ") : "",
             error_reason: r.errorReason ?? "",
           });

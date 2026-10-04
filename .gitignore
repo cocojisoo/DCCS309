@@ -31,7 +31,7 @@ yarn-error.log*
 .vercel
 
 # experiment console output
-/results/run-console.log
+/results/*-console.log
 
 # typescript
 *.tsbuildinfo
