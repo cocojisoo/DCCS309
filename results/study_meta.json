@@ -1,6 +1,6 @@
 {
-  "startedAt": "2026-09-26T13:41:21.486Z",
-  "finishedAt": "2026-09-26T13:59:24.091Z",
+  "startedAt": "2026-10-04T04:20:36.132Z",
+  "finishedAt": "2026-10-04T04:38:02.588Z",
   "environment": {
     "node": "v24.16.0",
     "platform": "win32 x64",
@@ -54,6 +54,27 @@
     },
     "astar": {
       "heuristic_scale": 0.999
+    },
+    "travel": {
+      "car_speed_kmh": 30
+    },
+    "traffic": {
+      "size_label": "r2000",
+      "pairs": 3,
+      "algorithms": [
+        "astar",
+        "cch",
+        "lpa"
+      ],
+      "congestion_factor": [
+        3,
+        6
+      ],
+      "congestion_on_route_ratio": 0.5,
+      "congestion_random_ratio": 0.08,
+      "closures_on_route": 1,
+      "closures_random": 10,
+      "repeats": 5
     },
     "demo": {
       "max_frames": 100,
@@ -1385,6 +1406,128 @@
   },
   "log": {
     "excluded": [],
-    "mismatches": []
+    "mismatches": [],
+    "cch": [
+      {
+        "sizeLabel": "n10",
+        "nodes": 10,
+        "prepMs": 0.762299999999982,
+        "customizeMs": 0.17669999999998254,
+        "arcs": 14,
+        "shortcuts": 4
+      },
+      {
+        "sizeLabel": "n15",
+        "nodes": 15,
+        "prepMs": 0.23150000000003956,
+        "customizeMs": 0.039299999999968804,
+        "arcs": 24,
+        "shortcuts": 9
+      },
+      {
+        "sizeLabel": "n20",
+        "nodes": 20,
+        "prepMs": 0.13370000000003301,
+        "customizeMs": 0.04299999999994952,
+        "arcs": 34,
+        "shortcuts": 13
+      },
+      {
+        "sizeLabel": "n25",
+        "nodes": 25,
+        "prepMs": 0.17099999999999227,
+        "customizeMs": 0.04009999999999536,
+        "arcs": 46,
+        "shortcuts": 20
+      },
+      {
+        "sizeLabel": "n30",
+        "nodes": 30,
+        "prepMs": 0.22010000000000218,
+        "customizeMs": 0.032100000000014006,
+        "arcs": 50,
+        "shortcuts": 18
+      },
+      {
+        "sizeLabel": "n40",
+        "nodes": 40,
+        "prepMs": 0.28539999999998145,
+        "customizeMs": 0.045600000000035834,
+        "arcs": 89,
+        "shortcuts": 44
+      },
+      {
+        "sizeLabel": "n50",
+        "nodes": 50,
+        "prepMs": 0.4218999999999937,
+        "customizeMs": 0.11529999999999063,
+        "arcs": 125,
+        "shortcuts": 66
+      },
+      {
+        "sizeLabel": "n75",
+        "nodes": 73,
+        "prepMs": 1.1152000000000157,
+        "customizeMs": 0.04009999999999536,
+        "arcs": 213,
+        "shortcuts": 121
+      },
+      {
+        "sizeLabel": "n100",
+        "nodes": 96,
+        "prepMs": 1.0196000000000254,
+        "customizeMs": 0.05269999999995889,
+        "arcs": 326,
+        "shortcuts": 204
+      },
+      {
+        "sizeLabel": "n200",
+        "nodes": 192,
+        "prepMs": 2.467300000000023,
+        "customizeMs": 0.25209999999998445,
+        "arcs": 805,
+        "shortcuts": 556
+      },
+      {
+        "sizeLabel": "r500",
+        "nodes": 80,
+        "prepMs": 0.6501999999999839,
+        "customizeMs": 0.03520000000003165,
+        "arcs": 202,
+        "shortcuts": 109
+      },
+      {
+        "sizeLabel": "r1000",
+        "nodes": 552,
+        "prepMs": 13.264999999999986,
+        "customizeMs": 0.3930000000000291,
+        "arcs": 2516,
+        "shortcuts": 1816
+      },
+      {
+        "sizeLabel": "r2000",
+        "nodes": 1573,
+        "prepMs": 31.202499999999986,
+        "customizeMs": 2.469699999999989,
+        "arcs": 10992,
+        "shortcuts": 8952
+      },
+      {
+        "sizeLabel": "r3000",
+        "nodes": 2455,
+        "prepMs": 45.6499,
+        "customizeMs": 2.5218000000000416,
+        "arcs": 17632,
+        "shortcuts": 14437
+      },
+      {
+        "sizeLabel": "r5000",
+        "nodes": 4006,
+        "prepMs": 83.83499999999998,
+        "customizeMs": 4.491399999999999,
+        "arcs": 30771,
+        "shortcuts": 25483
+      }
+    ]
   }
 }

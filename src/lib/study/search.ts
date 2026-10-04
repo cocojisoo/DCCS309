@@ -1,13 +1,21 @@
 import type { StudyGraph } from "./graph.ts";
 
-export type StudyAlgorithmId = "dfs" | "dijkstra" | "astar";
+export type StudyAlgorithmId = "dfs" | "dijkstra" | "astar" | "cch" | "lpa";
 export type SearchStatus = "SUCCESS" | "TIMEOUT" | "NO_PATH" | "ERROR";
 
+/** 화면과 표에 나오는 순서 (명세서: DFS, 다익스트라, A*, CCH, LPA) */
 export const STUDY_ALGORITHMS: { id: StudyAlgorithmId; name: string; role: string }[] = [
-  { id: "dfs", name: "DFS", role: "naive · 모든 길 확인" },
-  { id: "dijkstra", name: "다익스트라", role: "better" },
-  { id: "astar", name: "A*", role: "더 better" },
+  { id: "dfs", name: "DFS", role: "모든 길 확인" },
+  { id: "dijkstra", name: "다익스트라", role: "가까운 곳부터" },
+  { id: "astar", name: "A*", role: "도착점 방향 힌트" },
+  { id: "cch", name: "CCH", role: "미리 계산한 지름길" },
+  { id: "lpa", name: "LPA*", role: "바뀐 곳만 다시 계산" },
 ];
+
+export const STUDY_ALGORITHM_BY_ID = Object.fromEntries(STUDY_ALGORITHMS.map((a) => [a.id, a])) as Record<
+  StudyAlgorithmId,
+  (typeof STUDY_ALGORITHMS)[number]
+>;
 
 export interface SearchOptions {
   /** 제한시간(ms). null 이면 제한 없음 */
@@ -16,9 +24,17 @@ export interface SearchOptions {
   recordTrace?: boolean;
   /** 기록할 최대 프레임 수 */
   maxFrames?: number;
-  /** A* 힌트 배율 (직선거리 × scale) */
+  /**
+   * A* · LPA* 힌트 = 도착점까지 직선거리(m) × heuristicScale.
+   * 비용이 길이(m)이면 0.999, 이동시간(초)이면 0.999 ÷ 최고 속도(m/s) 처럼 실제 비용을 넘지 않게 정한다.
+   */
   heuristicScale?: number;
+  /** 도로별 비용. 없으면 도로 길이(m). 이동시간·혼잡·폐쇄(Infinity)를 넣을 수 있다 */
+  weights?: Float64Array;
 }
+
+/** 비용 배열 (없으면 길이) */
+export const weightsOf = (g: StudyGraph, o: SearchOptions): Float64Array => o.weights ?? g.len;
 
 /** 애니메이션 한 장면 */
 export interface TraceFrame {
@@ -37,6 +53,8 @@ export interface TraceFrame {
 export interface SearchTrace {
   /** 처음 들어간 순서대로의 교차로 번호 */
   order: number[];
+  /** order[i] 에 처음 들어올 때 어느 교차로에서 왔는지 (-1 = 없음). 대시보드 지도의 탐색선에 쓴다 */
+  via: number[];
   frames: TraceFrame[];
 }
 
@@ -46,6 +64,10 @@ export interface StudySearchResult {
   pathEdges: number[];
   /** 찾은 길의 길이(m). 성공이 아니면 null */
   lengthM: number | null;
+  /** 찾은 길의 비용 (weights 합). 비용이 길이이면 lengthM 과 같다. 성공이 아니면 null */
+  cost: number | null;
+  /** 간선(또는 CCH 지름길)을 살펴본 횟수 */
+  relaxations: number;
   /** 교차로에 들어간 총 횟수 (같은 곳 다시 들어가면 또 셈) */
   visitCount: number;
   /** 한 번이라도 들어간 서로 다른 교차로 수 */
@@ -66,6 +88,7 @@ export type PathFinder = (g: StudyGraph, source: number, target: number, options
  */
 export class TraceRecorder {
   readonly order: number[] = [];
+  private via: number[] = [];
   private frames: TraceFrame[] = [];
   private seen: Uint8Array;
   private interval = 1;
@@ -76,10 +99,12 @@ export class TraceRecorder {
     this.maxFrames = Math.max(2, maxFrames);
   }
 
-  visit(node: number) {
+  /** node 에 처음 들어왔으면 순서에 남긴다. from = 어느 교차로에서 왔는지 (모르면 -1) */
+  visit(node: number, from = -1) {
     if (this.seen[node]) return;
     this.seen[node] = 1;
     this.order.push(node);
+    this.via.push(from);
   }
 
   /** 이 step 에서 장면을 남길 차례인지 */
@@ -102,12 +127,35 @@ export class TraceRecorder {
       const k = this.maxFrames;
       frames = Array.from({ length: k }, (_, i) => this.frames[Math.round((i * (this.frames.length - 1)) / (k - 1))]);
     }
-    return { order: this.order, frames };
+    return { order: this.order, via: this.via, frames };
   }
 }
 
 export function emptyResult(): StudySearchResult {
-  return { status: "NO_PATH", pathEdges: [], lengthM: null, visitCount: 0, uniqueVisited: 0, completePaths: null, bestSoFarM: null };
+  return {
+    status: "NO_PATH",
+    pathEdges: [],
+    lengthM: null,
+    cost: null,
+    relaxations: 0,
+    visitCount: 0,
+    uniqueVisited: 0,
+    completePaths: null,
+    bestSoFarM: null,
+  };
+}
+
+/** 출발 = 도착일 때의 결과 */
+export function trivialResult(): StudySearchResult {
+  return { ...emptyResult(), status: "SUCCESS", lengthM: 0, cost: 0, visitCount: 1, uniqueVisited: 1 };
+}
+
+/** 찾은 길을 결과에 채운다 (길이와 비용은 간선 순서대로 더한다) */
+export function setPath(res: StudySearchResult, g: StudyGraph, w: Float64Array, pathEdges: number[]) {
+  res.status = "SUCCESS";
+  res.pathEdges = pathEdges;
+  res.lengthM = pathEdges.reduce((s, e) => s + g.len[e], 0);
+  res.cost = pathEdges.reduce((s, e) => s + w[e], 0);
 }
 
 /**

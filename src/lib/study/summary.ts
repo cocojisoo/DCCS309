@@ -28,12 +28,14 @@ export interface SummaryRow {
   median_visit_ratio: number;
   median_complete_paths: number | null;
   median_route_m: number | null;
+  /** 찾은 길의 차량 이동 시간(초) 중간값 */
+  median_route_s: number | null;
 }
 
 export const SUMMARY_COLUMNS: (keyof SummaryRow)[] = [
   "track", "size_label", "graph_nodes", "graph_edges", "algorithm", "od_count", "runs", "success", "timeout",
   "no_path", "error", "timeout_ratio", "median_ms", "min_ms", "max_ms", "median_visits", "max_visits",
-  "median_unique", "median_visit_ratio", "median_complete_paths", "median_route_m",
+  "median_unique", "median_visit_ratio", "median_complete_paths", "median_route_m", "median_route_s",
 ];
 
 /** public/study/summary.json: 화면이 읽는 실험 결과 전체 */
@@ -81,6 +83,7 @@ export function summarize(rows: RawRun[]): SummaryRow[] {
     const count = (s: RawRun["status"]) => group.filter((r) => r.status === s).length;
     const complete = perOd((r) => r.complete_paths);
     const route = perOd((r) => (r.status === "SUCCESS" ? r.route_length_m : null));
+    const routeS = perOd((r) => (r.status === "SUCCESS" ? r.route_time_s : null));
     out.push({
       track: first.track,
       size_label: first.size_label,
@@ -103,6 +106,7 @@ export function summarize(rows: RawRun[]): SummaryRow[] {
       median_visit_ratio: median(perOd((r) => (r.unique_visited ? r.visit_count / r.unique_visited : null))),
       median_complete_paths: complete.length ? median(complete) : null,
       median_route_m: route.length ? median(route) : null,
+      median_route_s: routeS.length ? median(routeS) : null,
     });
   }
   return out.sort(
@@ -170,6 +174,7 @@ export function rawRunFromCsv(r: Record<string, string>): RawRun {
     unique_visited: num("unique_visited"),
     complete_paths: opt("complete_paths"),
     route_length_m: opt("route_length_m"),
+    route_time_s: opt("route_time_s"),
     route_edge_ids: r.route_edge_ids,
     error_reason: r.error_reason,
   };

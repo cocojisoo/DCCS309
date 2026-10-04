@@ -2,34 +2,28 @@
 
 import { useEffect, useState } from "react";
 import type { StudySummary } from "@/lib/study/summary";
-import ClassroomView from "./ClassroomView";
+import type { TrafficIndex } from "@/lib/study/traffic";
 import CompareView from "./CompareView";
-import GrowthView from "./GrowthView";
+import ResultsView from "./ResultsView";
 import { fetchJson } from "./shared";
-import TradeoffView from "./TradeoffView";
+import TrafficView from "./TrafficView";
 
 const SCREENS = [
-  { id: "classroom", label: "1. 알고리즘 교실" },
-  { id: "compare", label: "2. 조치원 탐색 비교" },
-  { id: "growth", label: "3. 크기에 따른 변화" },
-  { id: "tradeoff", label: "4. 장단점 정리" },
+  { id: "compare", label: "1. 조치원 탐색 비교" },
+  { id: "traffic", label: "2. 혼잡 · 폐쇄" },
+  { id: "results", label: "3. 실험 결과" },
 ] as const;
 type ScreenId = (typeof SCREENS)[number]["id"];
 
 export default function StudyView() {
-  const [screen, setScreen] = useState<ScreenId>("classroom");
+  const [screen, setScreen] = useState<ScreenId>("compare");
   const [summary, setSummary] = useState<StudySummary | null | undefined>(undefined);
+  const [traffic, setTraffic] = useState<TrafficIndex | null>(null);
 
   useEffect(() => {
     fetchJson<StudySummary>("/study/summary.json").then(setSummary);
+    fetchJson<TrafficIndex>("/study/traffic/index.json").then(setTraffic);
   }, []);
-
-  const noResults = (
-    <p className="card text-sm">
-      아직 실험 결과가 없습니다. <code>npm run study:run</code> 으로 공식 실험을 돌리면 <code>results/raw_runs.csv</code> 와 이 화면의 데이터가
-      만들어집니다.
-    </p>
-  );
 
   return (
     <div className="flex flex-col gap-5">
@@ -40,10 +34,18 @@ export default function StudyView() {
           </button>
         ))}
       </div>
-      {screen === "classroom" && <ClassroomView />}
       {screen === "compare" && <CompareView timeLimitS={summary?.config.run.dfs_time_limit_s ?? 2} />}
-      {screen === "growth" && (summary === undefined ? <p className="muted text-sm">불러오는 중…</p> : summary ? <GrowthView summary={summary} /> : noResults)}
-      {screen === "tradeoff" && (summary === undefined ? <p className="muted text-sm">불러오는 중…</p> : summary ? <TradeoffView summary={summary} /> : noResults)}
+      {screen === "traffic" && <TrafficView />}
+      {screen === "results" &&
+        (summary === undefined ? (
+          <p className="muted text-sm">불러오는 중…</p>
+        ) : summary ? (
+          <ResultsView summary={summary} traffic={traffic} />
+        ) : (
+          <p className="card text-sm">
+            아직 실험 결과가 없습니다. <code>npm run study:run</code> 으로 공식 실험을 돌리면 이 화면의 데이터가 만들어집니다.
+          </p>
+        ))}
     </div>
   );
 }

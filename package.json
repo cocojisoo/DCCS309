@@ -12,7 +12,8 @@
     "study:check": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/study/check.ts",
     "study:run": "node --expose-gc --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/study/run.ts",
     "study:summarize": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/study/summarize.ts",
-    "study:traces": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/study/traces.ts",
+    "study:traffic": "node --expose-gc --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/study/traffic.ts",
+    "study:traces":"node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/study/traces.ts",
     "test:study": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test tests/study.test.ts"
   },
   "dependencies": {

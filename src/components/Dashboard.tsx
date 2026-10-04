@@ -2,12 +2,11 @@
 
 import dynamic from "next/dynamic";
 import { useMemo, useState } from "react";
-import { ALGORITHMS, ALGORITHM_BY_ID, type AlgorithmId } from "@/lib/algorithms";
+import { ALGORITHMS, ALGORITHM_BY_ID, DFS_TIME_LIMIT_MS, type AlgorithmId } from "@/lib/algorithms";
 import { edgesToLatLngs, runBenchmark, TIMING_RUNS, type BenchmarkResult, type ModeRun } from "@/lib/benchmark";
 import { END, MODE_LABEL, PENALTY_SEC, SPEED_KMH, START, type Mode } from "@/lib/config";
 import { formatDistance, formatDuration, formatInt, formatMs } from "@/lib/format";
 import type { LatLng } from "@/lib/geo";
-import { appendHistory } from "@/lib/history";
 import GroupedBarChart, { type BarSeries } from "./GroupedBarChart";
 import type { ExploredLayer, PathLayer } from "./RouteMap";
 
@@ -23,11 +22,21 @@ const SERIES: BarSeries[] = MODES.map((m) => ({ key: m, label: MODE_LABEL[m], co
 function exploredSegments(run: ModeRun, algo: AlgorithmId): [LatLng, LatLng][] {
   const r = run.runs.find((x) => x.algorithm === algo)!;
   const g = run.graph;
-  return r.explored.map((e) => [
-    [g.lat[g.from[e]], g.lng[g.from[e]]],
-    [g.lat[g.to[e]], g.lng[g.to[e]]],
+  return r.explored.map(([a, b]) => [
+    [g.lat[a], g.lng[a]],
+    [g.lat[b], g.lng[b]],
   ]);
 }
+
+const STATUS_NOTE: Record<string, string> = { TIMEOUT: "시간 초과", NO_PATH: "길 없음", ERROR: "오류" };
+
+const ALGO_CAPTION: Record<AlgorithmId, string> = {
+  dfs: "모든 길을 끝까지 따라가 보므로 이 크기의 지도에서는 2초 안에 끝나지 못합니다.",
+  dijkstra: "출발지에서 가까운 곳부터 동그랗게 퍼지며 확정합니다.",
+  astar: "도착지까지 직선거리 힌트로 도착지 쪽을 먼저 봅니다.",
+  cch: "미리 만들어 둔 지름길을 타고 출발지·도착지에서 '중요한 교차로' 쪽으로만 올라가 만나는 곳을 찾습니다.",
+  lpa: "처음 한 번은 A* 와 비슷하게 찾고, 도로 상황이 바뀌면 바뀐 곳 근처만 다시 계산합니다 (혼잡·폐쇄 실험 참고).",
+};
 
 export default function Dashboard() {
   const [penalties, setPenalties] = useState(true);
@@ -46,7 +55,6 @@ export default function Dashboard() {
       const r = await runBenchmark(penalties, setProgress);
       setResult(r);
       setStatus("done");
-      appendHistory(r);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
       setStatus("error");
@@ -74,10 +82,14 @@ export default function Dashboard() {
 
   const runsFor = (mode: Mode) => result!.modes[mode].runs;
   const chartRows = (pick: (r: ModeRun["runs"][number]) => number) =>
-    ALGORITHMS.map((a) => ({
-      label: a.name,
-      values: Object.fromEntries(MODES.map((m) => [m, pick(runsFor(m).find((r) => r.algorithm === a.id)!)])),
-    }));
+    ALGORITHMS.map((a) => {
+      const rs = MODES.map((m) => [m, runsFor(m).find((r) => r.algorithm === a.id)!] as const);
+      return {
+        label: a.name,
+        values: Object.fromEntries(rs.map(([m, r]) => [m, pick(r)])),
+        notes: Object.fromEntries(rs.map(([m, r]) => [m, STATUS_NOTE[r.status] ?? "—"])),
+      };
+    });
 
   return (
     <div className="flex flex-col gap-5">
@@ -138,7 +150,7 @@ export default function Dashboard() {
         />
         <p className="text-xs faint">
           {result
-            ? `옅은 선은 ${ALGORITHM_BY_ID[algo].name}이(가) 탐색한 간선, 굵은 선은 찾은 경로입니다. ${ALGORITHM_BY_ID[algo].summary}`
+            ? `옅은 선은 ${ALGORITHM_BY_ID[algo].name}이(가) 탐색한 ${algo === "cch" ? "지름길(미리 만들어 둔 shortcut, 직선으로 표시)" : "간선"}, 굵은 선은 찾은 경로입니다. ${ALGO_CAPTION[algo]}`
             : "▶ 시작을 누르면 모든 알고리즘을 차도·인도에서 실행하고, 선택한 알고리즘의 탐색 과정을 지도에 재생합니다."}
         </p>
       </section>
@@ -148,23 +160,23 @@ export default function Dashboard() {
           <section className="grid md:grid-cols-3 gap-3">
             <GroupedBarChart
               title="소요 시간"
-              subtitle="최적 알고리즘은 모두 같은 값, 탐욕 탐색만 더 오래 걸림"
+              subtitle="찾은 경로의 이동 시간 · 2초 안에 끝난 방법은 모두 같은 값"
               series={SERIES}
               rows={chartRows((r) => r.costSec)}
               format={formatDuration}
             />
             <GroupedBarChart
               title="탐색한 노드 수"
-              subtitle="적을수록 효율적 · 벨만-포드는 도달한 모든 노드"
+              subtitle="적을수록 효율적 · DFS 는 멈추기 전까지 들어간 노드, CCH 는 위로 올라간 노드"
               series={SERIES}
               rows={chartRows((r) => r.visited)}
               format={formatInt}
             />
             <GroupedBarChart
-              title="실행 시간"
-              subtitle={`1회 평균, ${TIMING_RUNS}번 측정한 중앙값 · 브라우저 성능에 따라 다름`}
+              title="탐색 시간"
+              subtitle={`1회 평균, ${TIMING_RUNS}번 측정한 중앙값 · CCH 는 질의만 · 브라우저 성능에 따라 다름`}
               series={SERIES}
-              rows={chartRows((r) => r.runtimeMs)}
+              rows={chartRows((r) => r.runtimeMs).map((row) => ({ ...row, notes: undefined }))}
               format={formatMs}
             />
           </section>
@@ -182,7 +194,7 @@ export default function Dashboard() {
                     <th>보정 시간 (횟수)</th>
                     <th>탐색 노드</th>
                     <th>간선 완화</th>
-                    <th>실행 시간</th>
+                    <th>탐색 시간</th>
                     <th>최적 경로</th>
                   </tr>
                 </thead>
@@ -199,15 +211,16 @@ export default function Dashboard() {
                           </td>
                           <td>{formatDistance(r.distanceM)}</td>
                           <td>{formatDuration(r.costSec)}</td>
-                          <td>{result.penalties ? `${formatDuration(r.penaltySec)} (${r.penaltyCount})` : "—"}</td>
+                          <td>{result.penalties && r.found ? `${formatDuration(r.penaltySec)} (${r.penaltyCount})` : "—"}</td>
                           <td>{formatInt(r.visited)}</td>
-                          <td>
-                            {formatInt(r.relaxations)}
-                            {r.rounds ? <span className="faint"> · {r.rounds}회 반복</span> : null}
-                          </td>
+                          <td>{formatInt(r.relaxations)}</td>
                           <td>{formatMs(r.runtimeMs)}</td>
                           <td>
-                            {r.optimal ? <span className="badge badge-good">✓ 최적</span> : <span className="badge badge-bad">✗ 비최적</span>}
+                            {r.optimal ? (
+                              <span className="badge badge-good">✓ 최적</span>
+                            ) : (
+                              <span className="badge badge-bad">{r.found ? "✗ 비최적" : `✗ ${STATUS_NOTE[r.status]}`}</span>
+                            )}
                           </td>
                         </tr>
                       );
@@ -221,6 +234,12 @@ export default function Dashboard() {
               {result.modes.car.snapEndM.toFixed(0)}m, 인도: 출발 {result.modes.walk.snapStartM.toFixed(0)}m / 도착{" "}
               {result.modes.walk.snapEndM.toFixed(0)}m 이동). 그래프: 차도 노드 {formatInt(result.modes.car.graph.n)}개, 인도 노드{" "}
               {formatInt(result.modes.walk.graph.n)}개 · OSM 기준 시각 {result.modes.car.graph.meta.osmTimestamp ?? "알 수 없음"}
+            </p>
+            <p className="text-xs faint mt-1">
+              CCH 의 탐색 시간은 질의만 잰 값입니다. 쓰기 전에 한 번 드는 시간: 전처리(지도 모양만 보고 지름길 만들기) 차도{" "}
+              {formatMs(result.modes.car.cch.prepMs)} · 인도 {formatMs(result.modes.walk.cch.prepMs)}, 커스터마이징(비용 채우기) 차도{" "}
+              {formatMs(result.modes.car.cch.customizeMs)} · 인도 {formatMs(result.modes.walk.cch.customizeMs)}. DFS 는 한 번에 최대{" "}
+              {DFS_TIME_LIMIT_MS / 1000}초만 돌립니다.
             </p>
           </section>
         </>

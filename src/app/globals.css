@@ -24,7 +24,12 @@
   --algo-dfs: #d63a3a;
   --algo-dijkstra: #2a78d6;
   --algo-astar: #e8741f;
+  --algo-cch: #8a5cd1;
+  --algo-lpa: #0e9aa7;
   --road: #cfcdc6;
+  /* 혼잡 · 폐쇄 도로 */
+  --jam: #e0313b;
+  --closed: #7a0f16;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -46,7 +51,11 @@
     --algo-dfs: #ec6262;
     --algo-dijkstra: #4b94ea;
     --algo-astar: #f08a3c;
+    --algo-cch: #a982ea;
+    --algo-lpa: #2bb8c4;
     --road: #45443f;
+    --jam: #f0525b;
+    --closed: #ff9aa0;
   }
 }
 
