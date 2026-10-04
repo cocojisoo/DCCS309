@@ -27,6 +27,20 @@
   "astar": {
     "heuristic_scale": 0.999
   },
+  "travel": {
+    "car_speed_kmh": 30
+  },
+  "traffic": {
+    "size_label": "r2000",
+    "pairs": 3,
+    "algorithms": ["astar", "cch", "lpa"],
+    "congestion_factor": [3, 6],
+    "congestion_on_route_ratio": 0.5,
+    "congestion_random_ratio": 0.08,
+    "closures_on_route": 1,
+    "closures_random": 10,
+    "repeats": 5
+  },
   "demo": {
     "max_frames": 100,
     "fixed_pairs": 1,

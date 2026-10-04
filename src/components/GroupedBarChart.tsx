@@ -11,6 +11,8 @@ export interface BarSeries {
 export interface BarRow {
   label: string;
   values: Record<string, number>;
+  /** 값이 숫자가 아닐 때(NaN 등) 막대 대신 보여 줄 글 (예: "시간 초과") */
+  notes?: Record<string, string>;
 }
 
 interface Props {
@@ -24,7 +26,7 @@ interface Props {
 /** 가로 그룹 막대 차트. 행 = 알고리즘, 막대 = 시리즈(자동차/도보 등) */
 export default function GroupedBarChart({ title, subtitle, series, rows, format }: Props) {
   const [hover, setHover] = useState<{ row: string; key: string } | null>(null);
-  const max = Math.max(1e-9, ...rows.flatMap((r) => series.map((s) => r.values[s.key] ?? 0)));
+  const max = Math.max(1e-9, ...rows.flatMap((r) => series.map((s) => r.values[s.key] ?? 0)).filter(Number.isFinite));
 
   return (
     <figure className="card" aria-label={title}>
@@ -51,6 +53,8 @@ export default function GroupedBarChart({ title, subtitle, series, rows, format 
                 const v = row.values[s.key];
                 if (v === undefined) return null;
                 const active = hover?.row === row.label && hover.key === s.key;
+                const ok = Number.isFinite(v);
+                const text = ok ? format(v) : (row.notes?.[s.key] ?? "—");
                 return (
                   <div
                     key={s.key}
@@ -62,20 +66,20 @@ export default function GroupedBarChart({ title, subtitle, series, rows, format 
                       <div
                         className="h-3 rounded-r-[4px] transition-[opacity]"
                         style={{
-                          width: `max(2px, ${(v / max) * 100}%)`,
+                          width: ok ? `max(2px, ${(v / max) * 100}%)` : "0",
                           background: s.color,
                           opacity: hover && !active ? 0.45 : 1,
                         }}
                       />
                     </div>
-                    <span className="w-[4.5rem] shrink-0 text-xs num muted">{format(v)}</span>
+                    <span className={`w-[4.5rem] shrink-0 text-xs num ${ok ? "muted" : "badge-bad"}`}>{text}</span>
                     {active && (
                       <div
                         role="tooltip"
                         className="absolute z-10 left-0 -top-9 whitespace-nowrap rounded-md px-2 py-1 text-xs shadow-md"
                         style={{ background: "var(--text)", color: "var(--surface)" }}
                       >
-                        {row.label} · {s.label}: <b>{format(v)}</b>
+                        {row.label} · {s.label}: <b>{text}</b>
                       </div>
                     )}
                   </div>

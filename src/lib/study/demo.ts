@@ -1,9 +1,9 @@
-import { timedRun, type StudyConfig } from "./benchmark.ts";
+import { timedRun, travelSeconds, type StudyConfig } from "./benchmark.ts";
 import { FINDERS } from "./finders.ts";
 import type { StudyGraph } from "./graph.ts";
 import { ladderTitle, type LadderStep } from "./ladder.ts";
 import { localIndex, type OdPair } from "./od.ts";
-import { STUDY_ALGORITHMS, type SearchStatus, type StudyAlgorithmId } from "./search.ts";
+import { STUDY_ALGORITHMS, type SearchStatus, type StudyAlgorithmId, type StudySearchResult } from "./search.ts";
 
 /** 애니메이션 한 장면. 번호는 모두 전체 지도(study.json) 기준 */
 export interface DemoFrame {
@@ -18,8 +18,10 @@ export interface DemoFrame {
 export interface DemoRun {
   status: SearchStatus;
   lengthM: number | null;
+  /** 찾은 길의 차량 이동 시간(초) */
+  timeS: number | null;
   bestSoFarM: number | null;
-  /** 기록 없이 1회 잰 시간 (발표용 참고값. 공식 값은 raw_runs.csv) */
+  /** 탐색 시간 (발표용 참고값. 공식 값은 raw_runs.csv) */
   searchMs: number;
   visitCount: number;
   uniqueVisited: number;
@@ -55,14 +57,8 @@ export interface DemoIndexEntry {
   pairs: { id: string; track: 1 | 2; straightM: number }[];
 }
 
-function demoRun(g: StudyGraph, algo: StudyAlgorithmId, s: number, t: number, c: StudyConfig): DemoRun {
-  const { ms } = timedRun(algo, g, s, t, c);
-  const r = FINDERS[algo](g, s, t, {
-    timeLimitMs: algo === "dfs" ? c.run.dfs_time_limit_s * 1000 : null,
-    heuristicScale: c.astar.heuristic_scale,
-    recordTrace: true,
-    maxFrames: c.demo.max_frames,
-  });
+/** 기록이 담긴 탐색 결과를 화면용(전체 지도 번호)으로 바꾼다 */
+export function toDemoRun(g: StudyGraph, r: StudySearchResult, searchMs: number, timeS: number | null): DemoRun {
   const toEdges = (es: number[]) => es.map((e) => g.origEdge[e]);
   const bests: number[][] = [];
   const bestIndex = new Map<number[], number>();
@@ -81,8 +77,9 @@ function demoRun(g: StudyGraph, algo: StudyAlgorithmId, s: number, t: number, c:
   return {
     status: r.status,
     lengthM: r.lengthM,
+    timeS,
     bestSoFarM: r.bestSoFarM,
-    searchMs: ms,
+    searchMs,
     visitCount: r.visitCount,
     uniqueVisited: r.uniqueVisited,
     completePaths: r.completePaths,
@@ -91,6 +88,18 @@ function demoRun(g: StudyGraph, algo: StudyAlgorithmId, s: number, t: number, c:
     frames,
     bests,
   };
+}
+
+function demoRun(g: StudyGraph, algo: StudyAlgorithmId, s: number, t: number, c: StudyConfig): DemoRun {
+  timedRun(algo, g, s, t, c); // 워밍업 (CCH 전처리도 여기서)
+  const { ms } = timedRun(algo, g, s, t, c);
+  const r = FINDERS[algo](g, s, t, {
+    timeLimitMs: algo === "dfs" ? c.run.dfs_time_limit_s * 1000 : null,
+    heuristicScale: c.astar.heuristic_scale,
+    recordTrace: true,
+    maxFrames: c.demo.max_frames,
+  });
+  return toDemoRun(g, r, ms, r.lengthM === null ? null : travelSeconds(r.lengthM, c));
 }
 
 export function makeDemo(step: LadderStep, pairs: OdPair[], c: StudyConfig): DemoFile {

@@ -1,10 +1,10 @@
 import type { StudyGraph } from "./graph.ts";
-import { emptyResult, TraceRecorder, type SearchOptions, type StudySearchResult } from "./search.ts";
+import { emptyResult, setPath, TraceRecorder, trivialResult, weightsOf, type SearchOptions, type StudySearchResult } from "./search.ts";
 import { TupleHeap } from "./tupleHeap.ts";
 
 const CLOCK_EVERY = 1000;
 
-function tracePath(g: StudyGraph, parentEdge: Int32Array, v: number): number[] {
+export function tracePath(g: StudyGraph, parentEdge: Int32Array, v: number): number[] {
   const path: number[] = [];
   while (parentEdge[v] >= 0) {
     const e = parentEdge[v];
@@ -16,14 +16,15 @@ function tracePath(g: StudyGraph, parentEdge: Int32Array, v: number): number[] {
 
 /**
  * 다익스트라와 A* 는 힙에 넣는 우선순위만 다르다 (PROJECT_BLUEPRINT 8.3, 8.4).
- *  - 다익스트라: (지금까지 거리, 순번)
- *  - A*: (지금까지 거리 + 힌트, −지금까지 거리, 순번). 힌트 = 도착점까지 직선거리 × scale.
- *    우선순위가 같으면 지금까지 거리가 더 긴 쪽(도착점에 더 가까운 쪽)을 먼저 꺼낸다.
+ *  - 다익스트라: (지금까지 비용, 순번)
+ *  - A*: (지금까지 비용 + 힌트, −지금까지 비용, 순번). 힌트 = 도착점까지 직선거리 × heuristicScale.
+ *    우선순위가 같으면 지금까지 비용이 더 큰 쪽(도착점에 더 가까운 쪽)을 먼저 꺼낸다.
  * 꺼낸 교차로가 이미 확정된 것이면 건너뛰고, 도착점을 꺼내면 멈춘다.
  */
 function bestFirst(g: StudyGraph, source: number, target: number, o: SearchOptions, astar: boolean): StudySearchResult {
+  if (source === target) return trivialResult();
   const res = emptyResult();
-  if (source === target) return { ...res, status: "SUCCESS", lengthM: 0, visitCount: 1, uniqueVisited: 1 };
+  const w = weightsOf(g, o);
 
   const scale = o.heuristicScale ?? 0.999;
   const tx = g.x[target];
@@ -41,6 +42,7 @@ function bestFirst(g: StudyGraph, source: number, target: number, o: SearchOptio
   dist[source] = 0;
   push(0, source);
   let visits = 0;
+  let relax = 0;
   let found = false;
   let timedOut = false;
 
@@ -50,7 +52,7 @@ function bestFirst(g: StudyGraph, source: number, target: number, o: SearchOptio
     closed[u] = 1;
     visits++;
     if (rec) {
-      rec.visit(u);
+      rec.visit(u, parentEdge[u] >= 0 ? g.from[parentEdge[u]] : -1);
       if (rec.due(visits) || u === target) rec.push({ step: visits, current: u, path: tracePath(g, parentEdge, u), best: null });
     }
     if (u === target) {
@@ -66,7 +68,8 @@ function bestFirst(g: StudyGraph, source: number, target: number, o: SearchOptio
       const e = g.outEdge[i];
       const v = g.to[e];
       if (closed[v]) continue;
-      const nd = du + g.len[e];
+      relax++;
+      const nd = du + w[e];
       if (nd < dist[v]) {
         dist[v] = nd;
         parentEdge[v] = e;
@@ -78,12 +81,9 @@ function bestFirst(g: StudyGraph, source: number, target: number, o: SearchOptio
   // 확정할 때마다 1번 세므로 방문 횟수 = 서로 다른 방문 교차로 수
   res.visitCount = visits;
   res.uniqueVisited = visits;
+  res.relaxations = relax;
   if (timedOut) res.status = "TIMEOUT";
-  else if (found) {
-    res.status = "SUCCESS";
-    res.pathEdges = tracePath(g, parentEdge, target);
-    res.lengthM = res.pathEdges.reduce((s, e) => s + g.len[e], 0);
-  }
+  else if (found) setPath(res, g, w, tracePath(g, parentEdge, target));
   if (rec) res.trace = rec.finish({ step: visits, current: found ? target : -1, path: res.pathEdges, best: found ? res.pathEdges : null });
   return res;
 }
