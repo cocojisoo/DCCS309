@@ -7,11 +7,14 @@ import CompareView from "./CompareView";
 import ResultsView from "./ResultsView";
 import { fetchJson } from "./shared";
 import TrafficView from "./TrafficView";
+import RoutingExperimentView from "./RoutingExperimentView";
 
 const SCREENS = [
   { id: "compare", label: "1. 조치원 탐색 비교" },
   { id: "traffic", label: "2. 혼잡 · 폐쇄" },
   { id: "results", label: "3. 실험 결과" },
+  { id: "cch-load", label: "4. A* ↔ CCH · 여러 요청" },
+  { id: "lpa-updates", label: "5. A* ↔ LPA* · 연속 변화" },
 ] as const;
 type ScreenId = (typeof SCREENS)[number]["id"];
 
@@ -36,6 +39,8 @@ export default function StudyView() {
       </div>
       {screen === "compare" && <CompareView timeLimitS={summary?.config.run.dfs_time_limit_s ?? 2} />}
       {screen === "traffic" && <TrafficView />}
+      {screen === "cch-load" && <RoutingExperimentView key="cch-load" kind="many-queries" />}
+      {screen === "lpa-updates" && <RoutingExperimentView key="lpa-updates" kind="replanning" />}
       {screen === "results" &&
         (summary === undefined ? (
           <p className="muted text-sm">불러오는 중…</p>
