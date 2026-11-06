@@ -122,7 +122,7 @@ export function timedRun(
   const ms = performance.now() - t0;
   if (result.status === "SUCCESS") {
     const problem = checkRoute(g, s, t, result.pathEdges, result.lengthM!);
-    if (problem) result = { ...result, status: "ERROR", errorReason: `경로 검사 실패: ${problem}` };
+    if (problem) result = { ...result, status: "ERROR", errorReason: `route check failed: ${problem}` };
   }
   return { result, ms };
 }
@@ -169,10 +169,10 @@ export function runStudy(plan: StudyPlan, c: StudyConfig, hooks: StudyHooks): St
       const s = localIndex(g, od.source);
       const t = localIndex(g, od.target);
       if (s < 0 || t < 0) {
-        log.excluded.push({ track, sizeLabel: step.label, odId: od.id, reason: "출발 또는 도착 교차로가 이 크기의 지도에 없음" });
+        log.excluded.push({ track, sizeLabel: step.label, odId: od.id, reason: "source or target is not on this map size" });
         continue;
       }
-      hooks.onProgress?.(`[${jobIdx + 1}/${jobs.length}] 트랙 ${track} · ${step.label} (교차로 ${g.n}) · ${od.id}`);
+      hooks.onProgress?.(`[${jobIdx + 1}/${jobs.length}] track ${track} · ${step.label} (${g.n} intersections) · ${od.id}`);
       for (let w = 0; w < c.run.warmup; w++) for (const a of algos) timedRun(a, g, s, t, c);
 
       const orderRand = seededRandom(deriveSeed(c.seed, `order:${track}:${step.label}:${od.id}`));

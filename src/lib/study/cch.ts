@@ -155,7 +155,7 @@ export function prepareCch(g: StudyGraph): CchPrep {
         const u = arcHead[i];
         const w = arcHead[j];
         const top = arcOf.get(u * n + w);
-        if (top === undefined) throw new Error("CCH: 위쪽 이웃끼리 아크가 없음 (수축 오류)");
+        if (top === undefined) throw new Error("CCH: upper neighbors have no arc (contraction error)");
         triTop.push(top);
         triVU.push(i);
         triVW.push(j);

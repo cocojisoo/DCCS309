@@ -14,7 +14,7 @@ export interface LadderStep {
 }
 
 export function ladderTitle(kind: LadderStep["kind"], target: number): string {
-  return kind === "nodes" ? `교차로 ${target}개` : `반경 ${target >= 1000 ? `${target / 1000}km` : `${target}m`}`;
+  return kind === "nodes" ? `${target} intersections` : `Radius ${target >= 1000 ? `${target / 1000}km` : `${target}m`}`;
 }
 
 /** 전체 지도에서 중심 좌표(0, 0)에 가장 가까운 교차로. 가장 큰 강연결요소 안에서만 고른다 */

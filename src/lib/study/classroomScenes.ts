@@ -5,6 +5,15 @@ import type { StudyGraph } from "./graph.ts";
 import { LpaStar } from "./lpa.ts";
 import type { StudyAlgorithmId, TraceFrame } from "./search.ts";
 
+/** 단계 묶음 이름 (화면에 그대로 보인다) */
+export const PHASE = {
+  preprocess: "Preprocessing",
+  query: "Query",
+  first: "First plan",
+  change: "Road change",
+  replan: "Replan",
+};
+
 /** 알고리즘 교실의 한 단계 */
 export interface ClassroomStep {
   /** 지금 보고 있는 교차로 (-1 = 없음) */
@@ -56,15 +65,15 @@ function searchScene(algo: "dfs" | "dijkstra" | "astar"): ClassroomScene {
     if (algo === "dfs") {
       text =
         f.current === CLASSROOM_TARGET
-          ? `도착! 완성 경로 ${routeText(g, f.path)} = ${d}m${f.best && pathLen(g.len, f.best) === d ? " (최고 기록)" : ""}`
-          : `${name(f.current)}에 들어감 · 지금 길 ${routeText(g, f.path)} (${d}m)`;
+          ? `Reached the goal! Complete path ${routeText(g, f.path)} = ${d}m${f.best && pathLen(g.len, f.best) === d ? " (best so far)" : ""}`
+          : `Entered ${name(f.current)} · current path ${routeText(g, f.path)} (${d}m)`;
     } else {
       labels[f.current] = `${d}`;
-      const tag = f.current === CLASSROOM_TARGET ? " → 도착점 확정, 멈춤" : "";
+      const tag = f.current === CLASSROOM_TARGET ? " → goal settled, stop" : "";
       text =
         algo === "dijkstra"
-          ? `${name(f.current)} 확정 · 거리 ${d}m${tag}`
-          : `${name(f.current)} 확정 · 거리 ${d} + 힌트 ${hint(f.current).toFixed(0)} = ${(d + hint(f.current)).toFixed(0)}${tag}`;
+          ? `Settled ${name(f.current)} · distance ${d}m${tag}`
+          : `Settled ${name(f.current)} · distance ${d} + hint ${hint(f.current).toFixed(0)} = ${(d + hint(f.current)).toFixed(0)}${tag}`;
     }
     return { current: f.current, visited: order.slice(0, f.visited), path: f.path, best: f.best, text, labels: algo === "dfs" ? undefined : { ...labels } };
   });
@@ -73,14 +82,14 @@ function searchScene(algo: "dfs" | "dijkstra" | "astar"): ClassroomScene {
     visited: order,
     path: [],
     best: null,
-    text: `결과: ${routeText(g, r.pathEdges)} = ${r.lengthM}m`,
+    text: `Result: ${routeText(g, r.pathEdges)} = ${r.lengthM}m`,
     labels: algo === "dfs" ? undefined : { ...labels },
     final: r.pathEdges,
   });
-  const extra = r.completePaths !== null ? ` · 완성해 본 경로 ${r.completePaths}개` : "";
+  const extra = r.completePaths !== null ? ` · ${r.completePaths} complete paths tried` : "";
   return {
     steps,
-    result: `${routeText(g, r.pathEdges)} = ${r.lengthM}m · 방문 ${r.visitCount}번 (서로 다른 교차로 ${r.uniqueVisited}개)${extra}`,
+    result: `${routeText(g, r.pathEdges)} = ${r.lengthM}m · ${r.visitCount} visits (${r.uniqueVisited} unique intersections)${extra}`,
   };
 }
 
@@ -112,8 +121,8 @@ function cchScene(): ClassroomScene {
     visited: [],
     path: [],
     best: null,
-    phase: "전처리",
-    text: `교차로마다 중요도 순위를 매깁니다 (지도를 반씩 나누는 경계에 있는 교차로일수록 높음). 숫자가 순위입니다.`,
+    phase: PHASE.preprocess,
+    text: `Each intersection gets an importance rank (higher on the boundaries that split the map in half). The numbers are the ranks.`,
     shortcutsShown: 0,
   });
   for (const v of prep.order) {
@@ -133,10 +142,10 @@ function cchScene(): ClassroomScene {
       visited: [],
       path: [],
       best: null,
-      phase: "전처리",
+      phase: PHASE.preprocess,
       text: added.length
-        ? `${name(v)} 수축 (순위 ${prep.rank[v]}): ${name(v)}를 거쳐 가던 이웃끼리 지름길 ${added.join(", ")} 추가`
-        : `${name(v)} 수축 (순위 ${prep.rank[v]}): 위쪽 이웃끼리 이미 연결돼 있어 지름길 없음`,
+        ? `Contract ${name(v)} (rank ${prep.rank[v]}): add shortcut ${added.join(", ")} between neighbors that went through ${name(v)}`
+        : `Contract ${name(v)} (rank ${prep.rank[v]}): upper neighbors are already connected, so no shortcut`,
       shortcutsShown: shortcuts.length,
     });
   }
@@ -162,18 +171,18 @@ function cchScene(): ClassroomScene {
         visited: [...visitedBefore, ...seen],
         path: [],
         best: null,
-        phase: "질의",
-        text: `${who}에서 위로: ${name(x)} (${dx === Infinity ? "아직 못 감" : dx})${reached.length ? ` → ${reached.join(", ")}` : ""}`,
-        labels: Object.fromEntries([...dist].map(([k, v]) => [k, `${who === "출발" ? "↑" : "↓"}${v}`])),
+        phase: PHASE.query,
+        text: `Up from ${who}: ${name(x)} (${dx === Infinity ? "not reached yet" : dx})${reached.length ? ` → ${reached.join(", ")}` : ""}`,
+        labels: Object.fromEntries([...dist].map(([k, v]) => [k, `${up ? "↑" : "↓"}${v}`])),
         shortcutsShown: shortcuts.length,
       });
     }
     return dist;
   };
   const visitedBefore: number[] = [];
-  const df = climb(s, true, "출발");
+  const df = climb(s, true, "start");
   visitedBefore.push(...df.keys());
-  const db = climb(t, false, "도착");
+  const db = climb(t, false, "goal");
   let best = Infinity, meet = -1;
   for (const [x, a] of df) {
     const b = db.get(x);
@@ -189,16 +198,16 @@ function cchScene(): ClassroomScene {
     visited,
     path: [],
     best: null,
-    phase: "질의",
-    text: `두 쪽이 만나는 곳 중 가장 싼 곳은 ${name(meet)}: ${df.get(meet)} + ${db.get(meet)} = ${best}. 지름길을 원래 도로로 펼칩니다.`,
+    phase: PHASE.query,
+    text: `The cheapest meeting point of the two sides is ${name(meet)}: ${df.get(meet)} + ${db.get(meet)} = ${best}. The shortcuts are unpacked into real roads.`,
     shortcutsShown: shortcuts.length,
   });
-  steps.push({ current: -1, visited, path: [], best: null, text: `결과: ${routeText(g, r.pathEdges)} = ${r.lengthM}m`, final: r.pathEdges, shortcutsShown: shortcuts.length });
+  steps.push({ current: -1, visited, path: [], best: null, text: `Result: ${routeText(g, r.pathEdges)} = ${r.lengthM}m`, final: r.pathEdges, shortcutsShown: shortcuts.length });
   return {
     steps,
     shortcuts,
     ranks,
-    result: `${routeText(g, r.pathEdges)} = ${r.lengthM}m · 지름길 ${shortcuts.length}개를 미리 만들어 두고, 질의 때는 교차로 ${r.uniqueVisited}곳만 봄`,
+    result: `${routeText(g, r.pathEdges)} = ${r.lengthM}m · ${shortcuts.length} shortcuts built in advance, and the query examines only ${r.uniqueVisited} intersections`,
   };
 }
 
@@ -215,7 +224,7 @@ function lpaScene(): ClassroomScene {
     if (!visited.includes(u)) visited = [...visited, u];
     if (gv > rhs) {
       labels[u] = `${rhs}`;
-      steps.push({ current: u, visited, path: [], best: null, phase, text: `${name(u)} 확정 · 비용 ${rhs}`, labels: { ...labels }, jam: phase !== "첫 계획" });
+      steps.push({ current: u, visited, path: [], best: null, phase, text: `Settled ${name(u)} · cost ${rhs}`, labels: { ...labels }, jam: phase !== PHASE.first });
     } else {
       labels[u] = "?";
       steps.push({
@@ -224,21 +233,21 @@ function lpaScene(): ClassroomScene {
         path: [],
         best: null,
         phase,
-        text: `${name(u)}: 알던 비용 ${gv} 가 더는 맞지 않음 → 지우고 이웃과 함께 다시 계산`,
+        text: `${name(u)}: known cost ${gv} is no longer valid → clear it and recompute with its neighbors`,
         labels: { ...labels },
-        jam: phase !== "첫 계획",
+        jam: phase !== PHASE.first,
       });
     }
   };
-  const first = lpa.compute({ onExpand: narrate("첫 계획") });
+  const first = lpa.compute({ onExpand: narrate(PHASE.first) });
   const firstCount = steps.length;
   steps.push({
     current: -1,
     visited,
     path: [],
     best: null,
-    phase: "첫 계획",
-    text: `첫 계획 결과: ${routeText(g, first.pathEdges)} = ${first.cost}m. 이 계산 결과를 버리지 않고 기억해 둡니다.`,
+    phase: PHASE.first,
+    text: `First plan result: ${routeText(g, first.pathEdges)} = ${first.cost}m. This work is kept, not thrown away.`,
     labels: { ...labels },
     final: first.pathEdges,
   });
@@ -257,12 +266,12 @@ function lpaScene(): ClassroomScene {
     visited: [],
     path: [],
     best: null,
-    phase: "도로 변화",
-    text: `${CLASSROOM_JAM.a}–${CLASSROOM_JAM.b} 도로가 혼잡해졌습니다: 비용 ${g.len[jamEdges[0]]} → ${w[jamEdges[0]]}. 이 도로 끝의 교차로만 '다시 볼 곳'으로 표시합니다.`,
+    phase: PHASE.change,
+    text: `Road ${CLASSROOM_JAM.a}–${CLASSROOM_JAM.b} is now congested: cost ${g.len[jamEdges[0]]} → ${w[jamEdges[0]]}. Only the intersections at the end of this road are marked to be rechecked.`,
     labels: { ...labels },
     jam: true,
   });
-  const again = lpa.compute({ onExpand: narrate("다시 계획") });
+  const again = lpa.compute({ onExpand: narrate(PHASE.replan) });
   const againCount = steps.length - firstCount - 2;
   const fresh = FINDERS.astar(g, s, t, { timeLimitMs: null, heuristicScale: 1, weights: w });
   steps.push({
@@ -270,8 +279,8 @@ function lpaScene(): ClassroomScene {
     visited,
     path: [],
     best: null,
-    phase: "다시 계획",
-    text: `결과: ${routeText(g, again.pathEdges)} = ${again.cost}`,
+    phase: PHASE.replan,
+    text: `Result: ${routeText(g, again.pathEdges)} = ${again.cost}`,
     labels: { ...labels },
     jam: true,
     final: again.pathEdges,
@@ -279,7 +288,7 @@ function lpaScene(): ClassroomScene {
   return {
     steps,
     jam: { edges: jamEdges, factor: CLASSROOM_JAM.factor },
-    result: `첫 계획에서 교차로 ${firstCount}번 처리 → 혼잡 뒤에는 ${againCount}번만 다시 처리 (A* 로 처음부터 다시 하면 ${fresh.visitCount}곳). 새 경로 ${routeText(g, again.pathEdges)} = ${again.cost}`,
+    result: `First plan processed intersections ${firstCount} times → after the congestion, only ${againCount} more (A* starting over would examine ${fresh.visitCount}). New route ${routeText(g, again.pathEdges)} = ${again.cost}`,
   };
 }
 

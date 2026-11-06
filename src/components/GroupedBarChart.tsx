@@ -72,7 +72,7 @@ export default function GroupedBarChart({ title, subtitle, series, rows, format 
                         }}
                       />
                     </div>
-                    <span className={`w-[4.5rem] shrink-0 text-xs num ${ok ? "muted" : "badge-bad"}`}>{text}</span>
+                    <span className={`w-[5rem] shrink-0 text-xs num ${ok ? "muted" : "badge-bad"}`}>{text}</span>
                     {active && (
                       <div
                         role="tooltip"

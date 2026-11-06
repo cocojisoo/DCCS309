@@ -44,7 +44,7 @@ export async function runBenchmark(
 ): Promise<BenchmarkResult> {
   const modes = {} as Record<Mode, ModeRun>;
   for (const mode of ["car", "walk"] as Mode[]) {
-    onProgress?.(`${mode === "car" ? "차도" : "인도"} 그래프 불러오는 중`);
+    onProgress?.(`Loading ${mode === "car" ? "road" : "sidewalk"} graph`);
     const graph = await loadGraph(mode);
     const s = nearestNode(graph, START.lat, START.lng);
     const t = nearestNode(graph, END.lat, END.lng);
@@ -52,7 +52,7 @@ export async function runBenchmark(
 
     const runs: AlgorithmRun[] = [];
     for (const algo of ALGORITHMS) {
-      onProgress?.(`${mode === "car" ? "차도" : "인도"} · ${algo.name} 실행 중${algo.id === "dfs" ? " (최대 2초)" : ""}`);
+      onProgress?.(`${mode === "car" ? "Road" : "Sidewalk"} · running ${algo.name}${algo.id === "dfs" ? " (up to 2 s)" : ""}`);
       await yieldToUi();
       const opts = { ...base, record: false };
       // CCH 는 첫 실행 때 전처리·커스터마이징을 하고 캐시한다 → 아래 시간 측정에는 질의만 들어간다

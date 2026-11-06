@@ -13,9 +13,9 @@ const FPS = 12;
 
 /** 계산 시간에 무엇이 들어가는지 (방법마다 상황이 바뀐 뒤 하는 일이 다르다) */
 const RESPONSE: Partial<Record<StudyAlgorithmId, string>> = {
-  astar: "바뀐 비용으로 처음부터 다시 탐색",
-  cch: "바뀐 도로에 닿는 지름길만 다시 계산 + 질의",
-  lpa: "지난 탐색을 재사용해 바뀐 곳 근처만 다시 계산",
+  astar: "Searches again from the start with the new costs",
+  cch: "Recomputes only the shortcuts touching changed roads, then queries",
+  lpa: "Reuses the previous search and recomputes only around the change",
 };
 
 export default function TrafficView() {
@@ -67,10 +67,10 @@ export default function TrafficView() {
   if (missing)
     return (
       <p className="card text-sm">
-        혼잡 · 폐쇄 실험 결과가 없습니다. <code>npm run study:traffic</code> 을 실행하세요.
+        No congestion and closure results found. Run <code>npm run study:traffic</code>.
       </p>
     );
-  if (!json || !index) return <p className="muted text-sm">지도 불러오는 중…</p>;
+  if (!json || !index) return <p className="muted text-sm">Loading map…</p>;
 
   const best = cs ? algos.map((a) => cs.runs[a]).find((r) => r?.status === "SUCCESS") : undefined;
   const jam = changes.filter((c) => c.kind === "congestion");
@@ -80,11 +80,12 @@ export default function TrafficView() {
     <div className="flex flex-col gap-4">
       <section className="card flex flex-col gap-3">
         <p className="text-sm muted">
-          {index.size.title} 지도(교차로 {formatInt(index.size.nodes)}개)에서 정상 상태로 경로를 찾아 둔 뒤, 도로 상황이 바뀌면 A*, CCH, LPA* 가 각자의
-          방식으로 <b>이동시간이 가장 짧은 새 경로</b>를 찾습니다. 비용은 이동시간(초)이고, 정상 상태는 모든 도로 30km/h 입니다.
+          On this map ({index.size.title}, {formatInt(index.size.nodes)} intersections), a route is first found in the normal state. When road conditions change,
+          A*, CCH and LPA* each find the <b>new route with the shortest travel time</b> in their own way. The cost is travel time in seconds, and in the normal
+          state every road is 30km/h.
         </p>
         <div className="flex flex-wrap items-center gap-3">
-          <div className="tabs" role="tablist" aria-label="상황">
+          <div className="tabs" role="tablist" aria-label="Situation">
             {TRAFFIC_SCENARIOS.map((s) => (
               <button
                 key={s.id}
@@ -102,7 +103,7 @@ export default function TrafficView() {
             ))}
           </div>
           <span className="faint">|</span>
-          <div className="tabs" role="tablist" aria-label="출발·도착 경로">
+          <div className="tabs" role="tablist" aria-label="Start and end route">
             {index.pairs.map((p, i) => (
               <button
                 key={p.odId}
@@ -115,13 +116,13 @@ export default function TrafficView() {
                   reset();
                 }}
               >
-                경로 {i + 1} · 직선 {formatDistance(p.straightM)}
+                Route {i + 1} · straight-line {formatDistance(p.straightM)}
               </button>
             ))}
           </div>
           <div className="flex gap-2 ml-auto">
             <button className="btn" onClick={reset} disabled={frame < 0}>
-              처음
+              Reset
             </button>
             <button
               className="btn btn-primary"
@@ -131,7 +132,7 @@ export default function TrafficView() {
                 setPlaying(!running);
               }}
             >
-              {running ? "⏸ 멈춤" : "▶ 다시 찾기"}
+              {running ? "⏸ Pause" : "▶ Search again"}
             </button>
             <button
               className="btn"
@@ -141,34 +142,34 @@ export default function TrafficView() {
                 setFrame(maxFrames - 1);
               }}
             >
-              결과로 ⏭
+              Show result ⏭
             </button>
           </div>
         </div>
         <div className="flex flex-wrap gap-4 text-xs muted">
           <span>
             <span className="swatch" style={{ background: "var(--jam)" }} />
-            혼잡 도로 {jam.length}개 (이동시간 ×3~6{jam.some((c) => c.onNormalRoute) ? `, 정상 경로 위 ${jam.filter((c) => c.onNormalRoute).length}개` : ""})
+            {jam.length} congested roads (travel time ×3–6{jam.some((c) => c.onNormalRoute) ? `, ${jam.filter((c) => c.onNormalRoute).length} on the normal route` : ""})
           </span>
           <span>
             <span className="swatch" style={{ background: "var(--closed)" }} />
-            폐쇄 도로 {closed.length}개 (✕ 표시{closed.some((c) => c.onNormalRoute) ? `, 정상 경로 위 ${closed.filter((c) => c.onNormalRoute).length}개` : ""})
+            {closed.length} closed roads (marked ✕{closed.some((c) => c.onNormalRoute) ? `, ${closed.filter((c) => c.onNormalRoute).length} on the normal route` : ""})
           </span>
           <span>
             <svg width="26" height="10" className="inline-block mr-1 align-middle" aria-hidden>
               <line x1="1" y1="5" x2="25" y2="5" stroke="var(--text-3)" strokeWidth="2.5" strokeDasharray="5 4" />
             </svg>
-            정상 상태에서 찾은 경로
+            Route found in the normal state
           </span>
           <span>
             <span className="swatch" style={{ background: "var(--text)" }} />
-            새로 찾은 경로 (끝나면 표시)
+            New route (shown when finished)
           </span>
         </div>
       </section>
 
       {!file || !cs ? (
-        <p className="muted text-sm">기록 불러오는 중…</p>
+        <p className="muted text-sm">Loading recording…</p>
       ) : (
         <>
           {best && <Outcome file={file} nowS={cs.normalRouteNowS} best={best} />}
@@ -196,8 +197,9 @@ export default function TrafficView() {
             })}
           </div>
           <p className="text-xs faint">
-            계산 시간은 상황이 바뀐 뒤 새 경로를 내놓기까지 걸린 시간의 {`5회`} 측정 중간값입니다. 정상 상태 준비(CCH 의 전처리·커스터마이징, LPA* 의 첫
-            계획)는 상황이 바뀌기 전에 이미 해 둔 일이라 넣지 않았습니다. 지도에 찍히는 점은 다시 찾으면서 본 교차로입니다.
+            Computation time is the median of 5 measurements of the time from the change until a new route is returned. Normal-state preparation (CCH
+            preprocessing and customization, LPA*&apos;s first plan) is excluded because it was already done before the change. Markers on the map are the
+            intersections examined while searching again.
           </p>
         </>
       )}
@@ -213,28 +215,28 @@ function Outcome({ file, nowS, best }: { file: TrafficDemoFile; nowS: number | n
   return (
     <section className="card !p-4 flex flex-col gap-3" style={{ borderLeft: "4px solid var(--good)" }}>
       <div>
-        <div className="font-semibold">✓ 추정 이동시간이 가장 짧은 경로를 확정했습니다.</div>
-        <div className="text-xs faint mt-0.5">세 방법 모두 같은 경로를 찾았습니다. 지도 위 굵은 검은 선이 최종 답이고, 회색 점선은 정상 상태의 경로입니다.</div>
+        <div className="font-semibold">✓ The route with the shortest estimated travel time is confirmed.</div>
+        <div className="text-xs faint mt-0.5">All three methods found the same route. The thick black line is the final answer, and the gray dashed line is the normal-state route.</div>
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        <Tile label="최종 경로 거리" value={formatDistance(best.lengthM ?? NaN)} note={`정상 ${formatDistance(n.lengthM)}`} />
-        <Tile label="차량 추정 이동시간" value={formatTravel(best.timeS)} note={`정상 ${formatTravel(n.timeS)}`} />
+        <Tile label="Final route length" value={formatDistance(best.lengthM ?? NaN)} note={`Normal ${formatDistance(n.lengthM)}`} />
+        <Tile label="Estimated travel time" value={formatTravel(best.timeS)} note={`Normal ${formatTravel(n.timeS)}`} />
         <Tile
-          label="정상 경로를 그대로 가면"
-          value={nowS === null ? "갈 수 없음" : formatTravel(nowS)}
-          note={nowS === null ? "폐쇄된 도로를 지남" : `정상보다 +${formatTravel(nowS - n.timeS)}`}
+          label="If you keep the normal route"
+          value={nowS === null ? "Impassable" : formatTravel(nowS)}
+          note={nowS === null ? "It uses a closed road" : `+${formatTravel(nowS - n.timeS)} over normal`}
           bad
         />
         <Tile
-          label="새 경로로 아낀 시간"
-          value={saved === null ? "—" : saved < 0.05 ? "0초" : formatTravel(saved)}
-          note={saved === null ? "정상 경로는 막혀 있음" : "정상 경로를 그대로 갈 때보다"}
+          label="Time saved by the new route"
+          value={saved === null ? "—" : saved < 0.05 ? "0 s" : formatTravel(saved)}
+          note={saved === null ? "The normal route is blocked" : "Compared with keeping the normal route"}
         />
       </div>
       <p className="text-sm">
-        <b>{same ? "정상 상태와 같은 경로를 선택했습니다." : "정상 상태와 다른 경로를 선택했습니다."}</b>{" "}
+        <b>{same ? "The same route as the normal state was chosen." : "A different route from the normal state was chosen."}</b>{" "}
         <span className="muted">
-          정상 → 현재: 경로 거리 {formatDistance(n.lengthM)} → {formatDistance(best.lengthM ?? NaN)} · 차량 추정 이동시간 {formatTravel(n.timeS)} →{" "}
+          Normal → now: route length {formatDistance(n.lengthM)} → {formatDistance(best.lengthM ?? NaN)} · estimated travel time {formatTravel(n.timeS)} →{" "}
           {formatTravel(best.timeS)}
         </span>
       </p>
@@ -261,29 +263,29 @@ function ResponseCard({ algo, run, frame }: { algo: StudyAlgorithmId; run: Traff
   const ok = run.status === "SUCCESS";
   return (
     <dl className="card !p-3 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm num">
-      <dt className="muted">상태</dt>
+      <dt className="muted">Status</dt>
       <dd className="text-right">
         {finished ? (
           <span className={`badge ${ok ? "badge-good" : "badge-bad"}`}>{STATUS_LABEL[run.status]}</span>
         ) : (
-          <span className="faint">{f ? "다시 찾는 중…" : "대기"}</span>
+          <span className="faint">{f ? "Searching again…" : "Waiting"}</span>
         )}
       </dd>
-      <dt className="muted">최종 경로 거리</dt>
+      <dt className="muted">Final route length</dt>
       <dd className="text-right">{finished && ok ? formatDistance(run.lengthM!) : "—"}</dd>
-      <dt className="muted">차량 추정 이동시간</dt>
+      <dt className="muted">Estimated travel time</dt>
       <dd className="text-right">{finished && ok ? formatTravel(run.timeS) : "—"}</dd>
-      <dt className="muted">본 교차로</dt>
+      <dt className="muted">Intersections examined</dt>
       <dd className="text-right">{formatInt(f ? f.visited : 0)}</dd>
-      <dt className="muted">계산 시간</dt>
+      <dt className="muted">Computation time</dt>
       <dd className="text-right">{finished ? formatMs(run.searchMs) : "—"}</dd>
       {algo === "cch" && finished && (
         <>
-          <dt className="muted">└ 지름길 다시 계산</dt>
+          <dt className="muted">└ Shortcuts recomputed</dt>
           <dd className="text-right">
-            {formatInt(run.recomputedArcs ?? 0)}개 · {formatMs(run.customizeMs ?? NaN)}
+            {formatInt(run.recomputedArcs ?? 0)} · {formatMs(run.customizeMs ?? NaN)}
           </dd>
-          <dt className="muted">└ 질의</dt>
+          <dt className="muted">└ Query</dt>
           <dd className="text-right">{formatMs(run.queryMs ?? NaN)}</dd>
         </>
       )}
