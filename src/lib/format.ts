@@ -3,7 +3,7 @@ export function formatDuration(sec: number): string {
   const total = Math.round(sec);
   const m = Math.floor(total / 60);
   const s = total % 60;
-  return m > 0 ? `${m}분 ${s.toString().padStart(2, "0")}초` : `${s}초`;
+  return m > 0 ? `${m} min ${s.toString().padStart(2, "0")} s` : `${s} s`;
 }
 
 export function formatDistance(m: number): string {
@@ -16,4 +16,4 @@ export function formatMs(ms: number): string {
   return ms < 1 ? `${ms.toFixed(3)}ms` : ms < 10 ? `${ms.toFixed(2)}ms` : `${ms.toFixed(1)}ms`;
 }
 
-export const formatInt = (n: number) => n.toLocaleString("ko-KR");
+export const formatInt = (n: number) => n.toLocaleString("en-US");

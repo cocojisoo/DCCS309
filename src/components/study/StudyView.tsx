@@ -9,9 +9,9 @@ import { fetchJson } from "./shared";
 import TrafficView from "./TrafficView";
 
 const SCREENS = [
-  { id: "compare", label: "1. 조치원 탐색 비교" },
-  { id: "traffic", label: "2. 혼잡 · 폐쇄" },
-  { id: "results", label: "3. 실험 결과" },
+  { id: "compare", label: "1. Jochiwon Search Comparison" },
+  { id: "traffic", label: "2. Congestion & Closure" },
+  { id: "results", label: "3. Results" },
 ] as const;
 type ScreenId = (typeof SCREENS)[number]["id"];
 
@@ -27,7 +27,7 @@ export default function StudyView() {
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="tabs" role="tablist" aria-label="실험 화면">
+      <div className="tabs" role="tablist" aria-label="Experiment screens">
         {SCREENS.map((s) => (
           <button key={s.id} role="tab" className="tab" aria-selected={screen === s.id} onClick={() => setScreen(s.id)}>
             {s.label}
@@ -38,12 +38,12 @@ export default function StudyView() {
       {screen === "traffic" && <TrafficView />}
       {screen === "results" &&
         (summary === undefined ? (
-          <p className="muted text-sm">불러오는 중…</p>
+          <p className="muted text-sm">Loading…</p>
         ) : summary ? (
           <ResultsView summary={summary} traffic={traffic} />
         ) : (
           <p className="card text-sm">
-            아직 실험 결과가 없습니다. <code>npm run study:run</code> 으로 공식 실험을 돌리면 이 화면의 데이터가 만들어집니다.
+            No experiment results yet. Run the official experiment with <code>npm run study:run</code> to generate the data for this screen.
           </p>
         ))}
     </div>

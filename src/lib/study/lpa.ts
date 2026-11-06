@@ -156,7 +156,7 @@ export class LpaStar {
       if (path.length && g.from[path[0]] === this.source) setPath(res, g, this.w, path);
       else {
         res.status = "ERROR";
-        res.errorReason = "LPA*: 경로 복원 실패";
+        res.errorReason = "LPA*: could not rebuild the path";
       }
     }
     if (rec) res.trace = rec.finish({ step: visits, current: t, path: res.pathEdges, best: res.status === "SUCCESS" ? res.pathEdges : null });

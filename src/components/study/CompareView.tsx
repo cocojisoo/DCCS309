@@ -10,9 +10,9 @@ import { ALGO_STYLE, fetchJson, formatTravel, STATUS_LABEL } from "./shared";
 
 const FPS = 12;
 
-/** 출발·도착 쌍 이름: "경로 1", "경로 2" … (작은 지도에서 고른 고정 쌍은 따로 표시) */
+/** 출발·도착 쌍 이름: "Route 1", "Route 2" … (작은 지도에서 고른 고정 쌍은 따로 표시) */
 export function pairLabel(i: number, track: 1 | 2) {
-  return `경로 ${i + 1}${track === 1 ? " (모든 크기 공통)" : ""}`;
+  return `Route ${i + 1}${track === 1 ? " (same at every size)" : ""}`;
 }
 
 export default function CompareView({ timeLimitS }: { timeLimitS: number }) {
@@ -62,17 +62,17 @@ export default function CompareView({ timeLimitS }: { timeLimitS: number }) {
   if (missing)
     return (
       <p className="card text-sm">
-        탐색 기록이 없습니다. <code>npm run study:graph</code> 로 지도를 만들고 <code>npm run study:traces</code> 로 발표용 기록을 만드세요.
+        No search recordings found. Build the map with <code>npm run study:graph</code> and create the recordings with <code>npm run study:traces</code>.
       </p>
     );
-  if (!json || !index || !entry) return <p className="muted text-sm">지도 불러오는 중…</p>;
+  if (!json || !index || !entry) return <p className="muted text-sm">Loading map…</p>;
 
   return (
     <div className="flex flex-col gap-4">
       <section className="card flex flex-col gap-3">
         <label className="flex flex-col gap-1.5">
           <span className="text-sm font-semibold">
-            지도 크기: {entry.title} <span className="muted font-normal">· 실제 교차로 {formatInt(entry.nodes)}개 · 도로 {formatInt(entry.edges)}개</span>
+            Map size: {entry.title} <span className="muted font-normal">· {formatInt(entry.nodes)} actual intersections · {formatInt(entry.edges)} roads</span>
           </span>
           <input
             type="range"
@@ -84,15 +84,15 @@ export default function CompareView({ timeLimitS }: { timeLimitS: number }) {
               setPairIdx(0);
               reset();
             }}
-            aria-valuetext={`${entry.title}, 교차로 ${entry.nodes}개`}
+            aria-valuetext={`${entry.title}, ${entry.nodes} intersections`}
           />
           <span className="flex justify-between text-xs faint">
-            <span>교차로 {index[0].nodes}개</span>
-            <span>교차로 {formatInt(index[index.length - 1].nodes)}개 ({index[index.length - 1].title})</span>
+            <span>{index[0].nodes} intersections</span>
+            <span>{formatInt(index[index.length - 1].nodes)} intersections ({index[index.length - 1].title})</span>
           </span>
         </label>
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="tabs" role="tablist" aria-label="출발·도착 경로">
+          <div className="tabs" role="tablist" aria-label="Start and end route">
             {entry.pairs.map((p, i) => (
               <button
                 key={p.id}
@@ -105,13 +105,13 @@ export default function CompareView({ timeLimitS }: { timeLimitS: number }) {
                   reset();
                 }}
               >
-                {pairLabel(i, p.track)} · 직선 {formatDistance(p.straightM)}
+                {pairLabel(i, p.track)} · straight-line {formatDistance(p.straightM)}
               </button>
             ))}
           </div>
           <div className="flex gap-2">
             <button className="btn" onClick={reset} disabled={frame < 0}>
-              처음
+              Reset
             </button>
             <button
               className="btn btn-primary"
@@ -121,7 +121,7 @@ export default function CompareView({ timeLimitS }: { timeLimitS: number }) {
                 setPlaying(!running);
               }}
             >
-              {running ? "⏸ 멈춤" : "▶ 탐색 시작"}
+              {running ? "⏸ Pause" : "▶ Start search"}
             </button>
             <button
               className="btn"
@@ -131,14 +131,14 @@ export default function CompareView({ timeLimitS }: { timeLimitS: number }) {
               }}
               disabled={!pair}
             >
-              결과로 ⏭
+              Show result ⏭
             </button>
           </div>
         </div>
       </section>
 
       {!demo || demo.label !== entry.label || !pair ? (
-        <p className="muted text-sm">탐색 기록 불러오는 중…</p>
+        <p className="muted text-sm">Loading search recording…</p>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {STUDY_ALGORITHMS.map((a) => (
@@ -160,9 +160,10 @@ export default function CompareView({ timeLimitS }: { timeLimitS: number }) {
         </div>
       )}
       <p className="text-xs faint">
-        옅은 표시는 방문한 교차로, 색 선은 지금 따라가는 길, 초록 점선은 DFS 의 현재 최고 기록 길, 굵은 검은 선은 최종 경로입니다. 각 방법은 자기
-        탐색을 최대 100장면으로 나눠 같은 속도로 재생합니다 (보여주는 장면만 줄이고 탐색은 줄이지 않음). 탐색 시간은 발표용 기록을 만들 때 잰
-        값이고 (CCH 는 질의만, 전처리는 별도), 공식 값은 &lsquo;실험 결과&rsquo;에 있습니다. 이동 시간은 찾은 경로를 차량 30km/h 로 갈 때입니다.
+        Faint markers are visited intersections, the colored line is the path being followed, the green dashed line is DFS&apos;s best path so far, and the
+        thick black line is the final route. Each method plays its own search in up to 100 frames at the same speed (only the frames shown are reduced, not
+        the search). Search time was measured when the recordings were made (CCH: query only, preprocessing is separate). Official values are under
+        &lsquo;Results&rsquo;. Travel time assumes a car driving the route at 30km/h.
       </p>
     </div>
   );
@@ -188,41 +189,41 @@ function RunCard({ algo, run, frame, shortest }: { algo: StudyAlgorithmId; run: 
   const ok = run.status === "SUCCESS";
   return (
     <dl className="card !p-3 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm num">
-      <dt className="muted">상태</dt>
+      <dt className="muted">Status</dt>
       <dd className="text-right">
         {finished ? (
           <span className={`badge ${ok ? "badge-good" : "badge-bad"}`}>{STATUS_LABEL[run.status]}</span>
         ) : (
-          <span className="faint">{f ? "탐색 중…" : "대기"}</span>
+          <span className="faint">{f ? "Searching…" : "Waiting"}</span>
         )}
       </dd>
-      <dt className="muted">찾은 길 길이</dt>
+      <dt className="muted">Route length</dt>
       <dd className="text-right">
         {!finished ? "—" : ok ? (
           <>
             {formatDistance(run.lengthM!)}
-            {shortest !== null && Math.abs(run.lengthM! - shortest) < 0.01 && <span className="faint"> ✓ 최단</span>}
+            {shortest !== null && Math.abs(run.lengthM! - shortest) < 0.01 && <span className="faint"> ✓ shortest</span>}
           </>
         ) : (
-          <span title={run.bestSoFarM !== null ? `멈추기 전까지 찾은 최고 기록 ${formatDistance(run.bestSoFarM)} (정답 비교에 쓰지 않음)` : undefined}>
-            확인 못 함{run.bestSoFarM !== null && <span className="faint"> (중단 전 {formatDistance(run.bestSoFarM)})</span>}
+          <span title={run.bestSoFarM !== null ? `Best found before stopping: ${formatDistance(run.bestSoFarM)} (not used for answer checks)` : undefined}>
+            Unverified{run.bestSoFarM !== null && <span className="faint"> (best before stop {formatDistance(run.bestSoFarM)})</span>}
           </span>
         )}
       </dd>
-      <dt className="muted">이동 시간</dt>
-      <dd className="text-right">{!finished ? "—" : ok ? formatTravel(run.timeS) : "확인 못 함"}</dd>
-      <dt className="muted">탐색 시간</dt>
+      <dt className="muted">Travel time</dt>
+      <dd className="text-right">{!finished ? "—" : ok ? formatTravel(run.timeS) : "Unverified"}</dd>
+      <dt className="muted">Search time</dt>
       <dd className="text-right">
         {finished ? formatMs(run.searchMs) : "—"}
-        {finished && algo === "cch" && <span className="faint text-xs"> (질의)</span>}
+        {finished && algo === "cch" && <span className="faint text-xs"> (query)</span>}
       </dd>
-      <dt className="muted">방문 횟수</dt>
+      <dt className="muted">Visits</dt>
       <dd className="text-right">{formatInt(f ? f.step : 0)}</dd>
-      <dt className="muted">서로 다른 교차로</dt>
+      <dt className="muted">Unique intersections</dt>
       <dd className="text-right">{formatInt(f ? f.visited : 0)}</dd>
       {run.completePaths !== null && (
         <>
-          <dt className="muted">완성해 본 경로</dt>
+          <dt className="muted">Complete paths tried</dt>
           <dd className="text-right">{finished ? formatInt(run.completePaths) : "—"}</dd>
         </>
       )}

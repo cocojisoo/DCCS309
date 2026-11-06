@@ -143,6 +143,12 @@ body {
   border-color: var(--text);
 }
 
+/* 머리글이 긴 표: 가로 스크롤 대신 머리글을 줄바꿈한다 */
+table.data.wrap-head th {
+  white-space: normal;
+  vertical-align: bottom;
+}
+
 .table-wrap {
   overflow-x: auto;
 }

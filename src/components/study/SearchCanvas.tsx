@@ -221,7 +221,7 @@ export default function SearchCanvas({ json, edgeIds, nodes, od, run, algo, fram
     }
 
     // 출발 이름은 점 위에, 도착 이름은 점 아래에 써서 두 점이 가까워도 겹치지 않게 한다
-    for (const [v, label, dy] of [[od.source, "출발", -10], [od.target, "도착", 20]] as const) {
+    for (const [v, label, dy] of [[od.source, "Start", -10], [od.target, "End", 20]] as const) {
       const [x, y] = node(v);
       ctx.fillStyle = text;
       ctx.strokeStyle = surface;
@@ -246,11 +246,11 @@ export default function SearchCanvas({ json, edgeIds, nodes, od, run, algo, fram
       ctx.font = `800 ${Math.min(30, size / 11) * dpr}px system-ui, sans-serif`;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText(`${timeLimitS}초 안에 못 끝남`, px / 2, px / 2);
+      ctx.fillText(`Not finished in ${timeLimitS} s`, px / 2, px / 2);
       ctx.textBaseline = "alphabetic";
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [px, frame, run, od, algo, k, edgeIds, ghostPath, changes]);
 
-  return <canvas ref={canvasRef} className="study-canvas" role="img" aria-label={`${algo} 탐색 과정 지도`} />;
+  return <canvas ref={canvasRef} className="study-canvas" role="img" aria-label={`${algo} search map`} />;
 }

@@ -113,5 +113,5 @@ export default function RouteMap({ explored = [], paths, animationKey, durationM
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [animationKey, paths.length]);
 
-  return <div ref={boxRef} className="map-box" role="img" aria-label="경로 지도" />;
+  return <div ref={boxRef} className="map-box" role="img" aria-label="Route map" />;
 }

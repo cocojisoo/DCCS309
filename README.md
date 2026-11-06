@@ -76,7 +76,7 @@ npm run study:traces     # 발표용 탐색 기록 → public/study/traces/ (화
 | 설정 `configs/study.yaml` | `configs/study.json` (같은 항목, YAML 파서 의존성을 피하려고 JSON) |
 | OSMnx `simplify=True` | `scripts/build-study-graph.mjs` 가 같은 규칙으로 교차로만 남기고 굽은 도로를 간선 하나로 합침. 자기루프 제거, 평행 도로는 가장 짧은 것만 |
 | 크기 사다리 (교차로 N개 / 반경) | `src/lib/study/ladder.ts`: 도로를 따라 가까운 N개, 직선 반경. 자른 뒤 가장 큰 강연결요소만 |
-| 트랙 1 / 트랙 2 출발·도착 | `src/lib/study/od.ts`: 시드 309 고정. 화면에서는 &lsquo;경로 1, 경로 2 …&rsquo; 로 표시 |
+| 트랙 1 / 트랙 2 출발·도착 | `src/lib/study/od.ts`: 시드 309 고정. 화면에서는 &lsquo;Route 1, Route 2 …&rsquo; 로 표시 |
 | A\* 힌트 안전 확인 | `checkHeuristic`: 모든 도로에서 0.999 × 직선 ≤ 길이 |
 | RouteChecker, 길이 일치(0.01m) | `checkRoute`, `runStudy` 의 불일치 기록 |
 | 워밍업 1회, 반복 5회 중간값, 반복마다 순서 섞기, 측정 중 GC 끄기 | 모두 구현. 단 V8 은 GC 를 끌 수 없어서 `--expose-gc` 로 측정 직전마다 수집만 함 |

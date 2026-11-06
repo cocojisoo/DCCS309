@@ -15,20 +15,20 @@ export default function ResultsView({ summary, traffic }: { summary: StudySummar
   return (
     <div className="flex flex-col gap-8">
       <section className="flex flex-col gap-3">
-        <h2 className="text-lg font-bold">① 정상 상태: 가장 짧은 경로와 가장 짧은 이동시간을 찾았나</h2>
+        <h2 className="text-lg font-bold">① Normal state: did each method find the shortest route and travel time?</h2>
         <NormalTable summary={summary} />
       </section>
       <section className="flex flex-col gap-3">
-        <h2 className="text-lg font-bold">② 정상 상태: 지도가 커지면 탐색 시간과 방문 횟수는</h2>
+        <h2 className="text-lg font-bold">② Normal state: how do search time and visits change as the map grows?</h2>
         <GrowthView summary={summary} />
       </section>
       <section className="flex flex-col gap-3">
-        <h2 className="text-lg font-bold">③ 혼잡 · 폐쇄: 탐색 시간과 경로는 어떻게 바뀌나</h2>
+        <h2 className="text-lg font-bold">③ Congestion and closure: how do search time and routes change?</h2>
         {traffic ? (
           <TrafficResults traffic={traffic} />
         ) : (
           <p className="card text-sm">
-            혼잡 · 폐쇄 실험 결과가 없습니다. <code>npm run study:traffic</code> 을 실행하세요.
+            No congestion and closure results found. Run <code>npm run study:traffic</code>.
           </p>
         )}
       </section>
@@ -51,18 +51,16 @@ function NormalTable({ summary }: { summary: StudySummary }) {
   return (
     <div className="card">
       <div className="table-wrap">
-        <table className="data">
+        <table className="data wrap-head">
           <thead>
             <tr>
-              <th>방법</th>
-              <th>끝까지 찾은 실행</th>
-              <th>최단 거리 경로</th>
-              <th>최소 이동시간</th>
-              <th>끝까지 푼 가장 큰 지도</th>
-              <th>
-                가장 큰 지도({big.label}) 탐색 시간
-              </th>
-              <th>그때 이동 시간</th>
+              <th>Method</th>
+              <th>Runs finished</th>
+              <th>Shortest route</th>
+              <th>Shortest travel time</th>
+              <th>Largest map solved</th>
+              <th>Search time on largest map ({big.label})</th>
+              <th>Travel time there</th>
             </tr>
           </thead>
           <tbody>
@@ -77,15 +75,15 @@ function NormalTable({ summary }: { summary: StudySummary }) {
                     {formatInt(r.success)} / {formatInt(r.runs)} <span className="faint">({pct(r.success, r.runs)})</span>
                   </td>
                   <td>
-                    {r.success === 0 ? "—" : allRight ? <span className="badge badge-good">찾은 것은 모두 최단</span> : <span className="badge badge-bad">{r.wrong}번 다름</span>}
-                    {r.timeout > 0 && <div className="text-xs badge-bad">시간 초과 {formatInt(r.timeout)}번은 확인 못 함</div>}
+                    {r.success === 0 ? "—" : allRight ? <span className="badge badge-good">All found are shortest</span> : <span className="badge badge-bad">{r.wrong} differ</span>}
+                    {r.timeout > 0 && <div className="text-xs badge-bad">{formatInt(r.timeout)} timeouts unverified</div>}
                   </td>
                   <td>
-                    {r.success === 0 ? "—" : allRight ? <span className="badge badge-good">찾은 것은 모두 최소</span> : <span className="badge badge-bad">{r.wrong}번 다름</span>}
+                    {r.success === 0 ? "—" : allRight ? <span className="badge badge-good">All found are fastest</span> : <span className="badge badge-bad">{r.wrong} differ</span>}
                   </td>
-                  <td>{r.largestSolved ? `교차로 ${formatInt(r.largestSolved.graph_nodes)}개` : "없음"}</td>
+                  <td>{r.largestSolved ? `${formatInt(r.largestSolved.graph_nodes)} intersections` : "None"}</td>
                   <td>
-                    {!r.biggest ? "—" : r.biggest.timeout === r.biggest.runs ? <span className="badge-bad">{summary.config.run.dfs_time_limit_s}초 안에 못 끝남</span> : formatMs(r.biggest.median_ms)}
+                    {!r.biggest ? "—" : r.biggest.timeout === r.biggest.runs ? <span className="badge-bad">Not finished in {summary.config.run.dfs_time_limit_s} s</span> : formatMs(r.biggest.median_ms)}
                   </td>
                   <td>{formatTravel(r.biggest?.median_route_s)}</td>
                 </tr>
@@ -95,9 +93,9 @@ function NormalTable({ summary }: { summary: StudySummary }) {
         </table>
       </div>
       <p className="text-xs faint mt-3">
-        정상 상태는 모든 도로를 같은 속도({summary.config.travel?.car_speed_kmh ?? 30}km/h)로 달린다고 보므로 가장 짧은 경로가 곧 가장 빠른 경로입니다.
-        &lsquo;최단&rsquo;은 같은 출발·도착에서 다른 방법(다익스트라)과 길이가 0.01m 안으로 같다는 뜻입니다. 모든 실행: 크기{" "}
-        {summary.ladder.length}단계 × 경로 × {summary.config.run.repeats}회 반복.
+        The normal state assumes every road has the same speed ({summary.config.travel?.car_speed_kmh ?? 30}km/h), so the shortest route is also the fastest.
+        &lsquo;Shortest&rsquo; means the length is within 0.01m of another method (Dijkstra) for the same start and end. All runs: {summary.ladder.length} map
+        sizes × routes × {summary.config.run.repeats} repeats.
       </p>
     </div>
   );
@@ -111,20 +109,20 @@ function TrafficResults({ traffic }: { traffic: TrafficIndex }) {
   return (
     <div className="flex flex-col gap-3">
       <p className="text-sm muted">
-        {traffic.size.title} 지도(교차로 {formatInt(traffic.size.nodes)}개), 경로 {traffic.pairs.length}개의 중간값입니다. 계산 시간은 상황이 바뀐 뒤 새
-        경로를 내놓기까지 걸린 시간입니다 (A*: 처음부터 다시, CCH: 바뀐 지름길만 + 질의, LPA*: 바뀐 곳 근처만).
+        Medians over {traffic.pairs.length} routes on one map ({traffic.size.title}, {formatInt(traffic.size.nodes)} intersections). Computation time is the time
+        from the change until a new route is returned (A*: from scratch, CCH: changed shortcuts + query, LPA*: only around the change).
       </p>
       <div className="grid md:grid-cols-2 gap-3">
         <GroupedBarChart
-          title="상황이 바뀐 뒤 계산 시간"
-          subtitle="5회 측정 중간값 → 경로들의 중간값"
+          title="Computation time after a change"
+          subtitle="Median of 5 measurements, then median across routes"
           series={series}
           rows={algos.map((a) => ({ label: STUDY_ALGORITHM_BY_ID[a].name, values: Object.fromEntries(scen.map((s) => [s.id, get(s.id, a).searchMs])) }))}
           format={formatMs}
         />
         <GroupedBarChart
-          title="다시 찾으면서 본 교차로"
-          subtitle="적을수록 지난 계산을 많이 재사용한 것"
+          title="Intersections examined when searching again"
+          subtitle="Fewer means more of the earlier work was reused"
           series={series}
           rows={algos.map((a) => ({ label: STUDY_ALGORITHM_BY_ID[a].name, values: Object.fromEntries(scen.map((s) => [s.id, get(s.id, a).visited])) }))}
           format={formatInt}
@@ -132,18 +130,18 @@ function TrafficResults({ traffic }: { traffic: TrafficIndex }) {
       </div>
       <div className="card">
         <div className="table-wrap">
-          <table className="data">
+          <table className="data wrap-head">
             <thead>
               <tr>
-                <th>상황</th>
-                <th>방법</th>
-                <th>성공</th>
-                <th>정상 경로 · 이동시간</th>
-                <th>새 경로 · 이동시간</th>
-                <th>정상 경로를 그대로 가면</th>
-                <th>경로가 바뀐 경우</th>
-                <th>계산 시간</th>
-                <th>본 교차로</th>
+                <th>Situation</th>
+                <th>Method</th>
+                <th>Success</th>
+                <th>Normal route · travel time</th>
+                <th>New route · travel time</th>
+                <th>If you keep the normal route</th>
+                <th>Route changed</th>
+                <th>Computation time</th>
+                <th>Intersections examined</th>
               </tr>
             </thead>
             <tbody>
@@ -167,7 +165,7 @@ function TrafficResults({ traffic }: { traffic: TrafficIndex }) {
                       </td>
                       <td>
                         {r.normalRouteNowS === null ? "—" : formatTravel(r.normalRouteNowS)}
-                        {r.normalRouteBlocked > 0 && <span className="badge-bad text-xs"> 막힘 {r.normalRouteBlocked}개</span>}
+                        {r.normalRouteBlocked > 0 && <span className="badge-bad text-xs"> {r.normalRouteBlocked} blocked</span>}
                       </td>
                       <td>
                         {r.routeChanged} / {r.pairs}
@@ -175,8 +173,8 @@ function TrafficResults({ traffic }: { traffic: TrafficIndex }) {
                       <td>
                         {formatMs(r.searchMs)}
                         {a === "cch" && r.customizeMs !== null && (
-                          <div className="text-xs faint">
-                            지름길 {formatInt(r.recomputedArcs ?? 0)}개 {formatMs(r.customizeMs)} + 질의 {formatMs(r.queryMs ?? NaN)}
+                          <div className="text-xs faint whitespace-normal">
+                            {formatInt(r.recomputedArcs ?? 0)} shortcuts {formatMs(r.customizeMs)} + query {formatMs(r.queryMs ?? NaN)}
                           </div>
                         )}
                       </td>
@@ -189,8 +187,9 @@ function TrafficResults({ traffic }: { traffic: TrafficIndex }) {
           </table>
         </div>
         <p className="text-xs faint mt-3">
-          거리 · 이동시간 · &lsquo;그대로 가면&rsquo;은 경로들의 중간값이고, 폐쇄로 정상 경로를 갈 수 없는 경로는 &lsquo;그대로 가면&rsquo; 중간값에서
-          뺐습니다. 세 방법 모두 이동시간이 가장 짧은 경로를 찾으므로 경로 관련 값은 같고, 차이는 계산 시간과 본 교차로 수에 있습니다.
+          Length, travel time and &lsquo;keep the normal route&rsquo; are medians across routes. Routes whose normal path is closed are left out of the
+          &lsquo;keep the normal route&rsquo; median. All three methods find the route with the shortest travel time, so the route values match. The differences
+          are in computation time and intersections examined.
         </p>
       </div>
       <ManyQueries traffic={traffic} />

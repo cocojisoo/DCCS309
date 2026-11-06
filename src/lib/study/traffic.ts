@@ -13,9 +13,9 @@ import { localIndex, type OdPair } from "./od.ts";
 export type TrafficScenarioId = "congestion" | "closure" | "both";
 
 export const TRAFFIC_SCENARIOS: { id: TrafficScenarioId; name: string; detail: string }[] = [
-  { id: "congestion", name: "혼잡", detail: "일부 도로의 이동시간이 몇 배로 늘어남" },
-  { id: "closure", name: "폐쇄", detail: "일부 도로를 지나갈 수 없음" },
-  { id: "both", name: "혼잡 + 폐쇄", detail: "두 상황이 함께 생김" },
+  { id: "congestion", name: "Congestion", detail: "Travel time on some roads is multiplied" },
+  { id: "closure", name: "Closure", detail: "Some roads cannot be used" },
+  { id: "both", name: "Congestion + Closure", detail: "Both happen at once" },
 ];
 
 /** 상황이 바뀐 도로 하나 (양방향 간선 모두). 번호는 이 크기 지도의 간선 번호 */
@@ -183,7 +183,7 @@ export function runTrafficOd(g: StudyGraph, s: number, t: number, odId: string, 
   const normal = Float64Array.from(g.len, (l) => l / speed);
   const scale = c.astar.heuristic_scale / speed;
   const base = FINDERS.dijkstra(g, s, t, { timeLimitMs: null, weights: normal });
-  if (base.status !== "SUCCESS") throw new Error(`${odId}: 정상 상태에서 길이 없음`);
+  if (base.status !== "SUCCESS") throw new Error(`${odId}: no path in the normal state`);
   const scenarios = makeScenario(g, s, t, base.pathEdges, c, odId);
 
   const cases: TrafficCase[] = [];
@@ -317,7 +317,7 @@ export function makeTrafficDemo(step: LadderStep, od: OdPair, result: TrafficOd,
 /** 실험할 지도 크기와 출발·도착 쌍 (트랙 2 의 앞쪽 쌍) */
 export function trafficTargets(ladder: LadderStep[], track2: Record<string, { pairs: OdPair[] }>, c: StudyConfig) {
   const step = ladder.find((l) => l.label === c.traffic.size_label);
-  if (!step) throw new Error(`traffic.size_label ${c.traffic.size_label} 이 크기 사다리에 없습니다`);
+  if (!step) throw new Error(`traffic.size_label ${c.traffic.size_label} is not in the size ladder`);
   const pairs = track2[step.label].pairs.slice(0, c.traffic.pairs).filter((p) => localIndex(step.graph, p.source) >= 0 && localIndex(step.graph, p.target) >= 0);
   return { step, pairs };
 }

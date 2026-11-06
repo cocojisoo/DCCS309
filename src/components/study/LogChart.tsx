@@ -66,11 +66,11 @@ export default function LogChart({ title, subtitle, xLabel, yLabel, series, form
               {s.label}
             </span>
           ))}
-          <span>✕ = 시간 초과가 난 크기 (값은 제한시간에 묶임)</span>
+          <span>✕ = size with timeouts (value capped by the time limit)</span>
         </div>
       </figcaption>
       <div className="h-5 text-xs num muted">{hover ? `${hover.s.label} · ${hover.p.label}` : ""}</div>
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" role="img" aria-label={`${title}: ${xLabel} 대비 ${yLabel}`}>
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" role="img" aria-label={`${title}: ${yLabel} vs ${xLabel}`}>
         {yTicks.map((t) => (
           <g key={`y${t}`}>
             <line x1={M.l} x2={W - M.r} y1={sy(t)} y2={sy(t)} stroke="var(--border)" />
@@ -83,7 +83,7 @@ export default function LogChart({ title, subtitle, xLabel, yLabel, series, form
           <g key={`x${t}`}>
             <line x1={sx(t)} x2={sx(t)} y1={M.t} y2={H - M.b} stroke="var(--border)" />
             <text x={sx(t)} y={H - M.b + 16} textAnchor="middle" fontSize="11" fill="var(--text-3)">
-              {t.toLocaleString("ko-KR")}
+              {t.toLocaleString("en-US")}
             </text>
           </g>
         ))}

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { CLASSROOM_NODES, CLASSROOM_SOURCE, CLASSROOM_TARGET, classroomGraph } from "@/lib/study/classroom";
-import { classroomScene } from "@/lib/study/classroomScenes";
+import { classroomScene, PHASE } from "@/lib/study/classroomScenes";
 import type { StudyAlgorithmId } from "@/lib/study/search";
 import { ALGO_STYLE } from "./shared";
 
@@ -43,7 +43,7 @@ export default function ClassroomView({ algo }: { algo: StudyAlgorithmId }) {
       <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="text-sm muted">
           {f.phase ? <span className="badge mr-2">{f.phase}</span> : null}
-          {Math.min(frame + 1, steps.length)} / {steps.length} 단계
+          Step {Math.min(frame + 1, steps.length)} / {steps.length}
         </span>
         <div className="flex flex-wrap gap-2">
           <button
@@ -53,10 +53,10 @@ export default function ClassroomView({ algo }: { algo: StudyAlgorithmId }) {
               setPlaying(false);
             }}
           >
-            처음
+            Reset
           </button>
           <button className="btn" onClick={() => setFrame((x) => Math.max(0, x - 1))} disabled={frame === 0}>
-            ◀ 이전
+            ◀ Back
           </button>
           <button
             className="btn btn-primary"
@@ -65,17 +65,17 @@ export default function ClassroomView({ algo }: { algo: StudyAlgorithmId }) {
               setPlaying(!running);
             }}
           >
-            {running ? "⏸ 멈춤" : "▶ 재생"}
+            {running ? "⏸ Pause" : "▶ Play"}
           </button>
           <button className="btn" onClick={() => setFrame((x) => Math.min(steps.length - 1, x + 1))} disabled={done}>
-            한 단계 ▶
+            Next step ▶
           </button>
         </div>
       </div>
 
       <div className="grid md:grid-cols-[3fr_2fr] gap-4">
         <section className="card">
-          <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" role="img" aria-label="작은 그림 지도 탐색 과정">
+          <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" role="img" aria-label="Search on a small example map">
             {Array.from({ length: g.m / 2 }, (_, r) => {
               const e = r * 2;
               const a = g.from[e];
@@ -111,7 +111,7 @@ export default function ClassroomView({ algo }: { algo: StudyAlgorithmId }) {
               const nx = -(y2 - y1), ny = x2 - x1;
               const len = Math.hypot(nx, ny) || 1;
               const cx = (x1 + x2) / 2 + (nx / len) * 28, cy = (y1 + y2) / 2 + (ny / len) * 28;
-              const isNew = i === shortcuts.length - 1 && f.phase === "전처리";
+              const isNew = i === shortcuts.length - 1 && f.phase === PHASE.preprocess;
               return (
                 <g key={`sc${i}`}>
                   <path d={`M${x1},${y1} Q${cx},${cy} ${x2},${y2}`} fill="none" stroke="var(--algo-cch)" strokeWidth={isNew ? 3.5 : 2.2} strokeDasharray="7 4" />
@@ -159,52 +159,52 @@ export default function ClassroomView({ algo }: { algo: StudyAlgorithmId }) {
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs muted mt-2">
             <span>
               <span className="swatch" style={{ background: color }} />
-              지금 보는 교차로 (굵은 테두리)
+              Current intersection (thick outline)
             </span>
             <span>
               <span className="swatch" style={{ background: color, opacity: 0.35 }} />
-              이미 본 교차로
+              Already examined
             </span>
             {algo === "dfs" && (
               <>
                 <span>
                   <span className="swatch" style={{ background: color }} />
-                  지금 따라가는 길
+                  Path being followed
                 </span>
                 <span>
                   <span className="swatch" style={{ background: "var(--good)" }} />
-                  현재 최고 기록 길 (점선)
+                  Best path so far (dashed)
                 </span>
               </>
             )}
-            {(algo === "dijkstra" || algo === "astar") && <span>교차로 아래 숫자 = 출발점에서의 거리</span>}
+            {(algo === "dijkstra" || algo === "astar") && <span>Number below an intersection = distance from the start</span>}
             {algo === "cch" && (
               <>
                 <span>
                   <span className="swatch" style={{ background: "var(--algo-cch)" }} />
-                  보라 동그라미 = 중요도 순위, 보라 점선 = 지름길
+                  Purple circle = importance rank, purple dashed line = shortcut
                 </span>
-                <span>↑ 출발 쪽 비용 · ↓ 도착 쪽 비용</span>
+                <span>↑ cost from the start · ↓ cost to the goal</span>
               </>
             )}
             {algo === "lpa" && (
               <>
                 <span>
                   <span className="swatch" style={{ background: "var(--jam)" }} />
-                  혼잡 도로
+                  Congested road
                 </span>
-                <span>숫자 = 알고 있는 비용, ? = 다시 계산 중</span>
+                <span>Number = known cost, ? = being recomputed</span>
               </>
             )}
             <span>
               <span className="swatch" style={{ background: "var(--text)" }} />
-              최종 경로
+              Final route
             </span>
           </div>
         </section>
 
         <section className="card flex flex-col gap-2">
-          <h3 className="font-semibold">진행 순서</h3>
+          <h3 className="font-semibold">Steps</h3>
           <ol className="text-sm flex flex-col gap-1 max-h-80 overflow-auto num">
             {steps.slice(0, frame + 1).map((x, i) => (
               <li key={i} className={i === frame ? "font-semibold" : "muted"}>
