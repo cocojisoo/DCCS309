@@ -24,18 +24,20 @@ export default function ManyQueries({ traffic, scenario = "both" }: { traffic: T
   const name = TRAFFIC_SCENARIOS.find((s) => s.id === scenario)!.name;
   return (
     <div className="card">
-      <div className="font-semibold">같은 변화 뒤 경로 여러 개를 다시 찾을 때 ({name})</div>
+      <div className="font-semibold">Recomputing many routes after the same change ({name})</div>
       <p className="text-xs faint mt-0.5 mb-3">
-        실제 내비게이션은 교통 정보가 바뀔 때마다 많은 사용자의 경로를 다시 찾습니다. 위에서 잰 중간값으로 계산한 값입니다: A* = K × 탐색, CCH =
-        커스터마이징 1번 + K × 질의, LPA* = K × 다시 계획.
+        A real navigation service must recompute many users&apos; routes whenever traffic data changes. These values are calculated from the medians measured
+        above: A* = K × search, CCH = 1 customization + K × query, LPA* = K × replan.
       </p>
       <div className="table-wrap">
         <table className="data">
           <thead>
             <tr>
-              <th>방법</th>
+              <th>Method</th>
               {COUNTS.map((k) => (
-                <th key={k}>경로 {k.toLocaleString("ko-KR")}개</th>
+                <th key={k}>
+                  {k.toLocaleString("en-US")} {k === 1 ? "route" : "routes"}
+                </th>
               ))}
             </tr>
           </thead>
@@ -62,7 +64,7 @@ export default function ManyQueries({ traffic, scenario = "both" }: { traffic: T
           </tbody>
         </table>
       </div>
-      <p className="text-xs faint mt-2">굵은 글씨 = 그 개수에서 가장 적게 드는 방법.</p>
+      <p className="text-xs faint mt-2">Bold = the cheapest method for that number of routes.</p>
     </div>
   );
 }

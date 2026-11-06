@@ -5,11 +5,11 @@ export type SearchStatus = "SUCCESS" | "TIMEOUT" | "NO_PATH" | "ERROR";
 
 /** 화면과 표에 나오는 순서 (명세서: DFS, 다익스트라, A*, CCH, LPA) */
 export const STUDY_ALGORITHMS: { id: StudyAlgorithmId; name: string; role: string }[] = [
-  { id: "dfs", name: "DFS", role: "모든 길 확인" },
-  { id: "dijkstra", name: "다익스트라", role: "가까운 곳부터" },
-  { id: "astar", name: "A*", role: "도착점 방향 힌트" },
-  { id: "cch", name: "CCH", role: "미리 계산한 지름길" },
-  { id: "lpa", name: "LPA*", role: "바뀐 곳만 다시 계산" },
+  { id: "dfs", name: "DFS", role: "tries every path" },
+  { id: "dijkstra", name: "Dijkstra", role: "nearest first" },
+  { id: "astar", name: "A*", role: "goal-direction hint" },
+  { id: "cch", name: "CCH", role: "precomputed shortcuts" },
+  { id: "lpa", name: "LPA*", role: "recomputes only what changed" },
 ];
 
 export const STUDY_ALGORITHM_BY_ID = Object.fromEntries(STUDY_ALGORITHMS.map((a) => [a.id, a])) as Record<
@@ -163,18 +163,18 @@ export function setPath(res: StudySearchResult, g: StudyGraph, w: Float64Array, 
  * 간선이 방향 그래프의 간선이므로 이어지기만 하면 일방통행을 거꾸로 가지 않은 것이다.
  */
 export function checkRoute(g: StudyGraph, source: number, target: number, pathEdges: number[], lengthM: number): string | null {
-  if (source === target) return pathEdges.length === 0 && lengthM === 0 ? null : "출발 = 도착인데 길이 비어 있지 않음";
-  if (!pathEdges.length) return "빈 경로";
+  if (source === target) return pathEdges.length === 0 && lengthM === 0 ? null : "source equals target but the path is not empty";
+  if (!pathEdges.length) return "empty path";
   let cur = source;
   let sum = 0;
   for (const e of pathEdges) {
-    if (!(e >= 0 && e < g.m)) return `없는 도로 번호 ${e}`;
-    if (g.from[e] !== cur) return `도로 ${e} 가 앞 도로와 이어지지 않음`;
+    if (!(e >= 0 && e < g.m)) return `unknown road id ${e}`;
+    if (g.from[e] !== cur) return `road ${e} does not connect to the previous road`;
     sum += g.len[e];
     cur = g.to[e];
   }
-  if (cur !== target) return "도착 교차로에서 끝나지 않음";
-  if (Math.abs(sum - lengthM) > 0.01) return `길이 합 ${sum.toFixed(3)}m ≠ 보고한 길이 ${lengthM.toFixed(3)}m`;
+  if (cur !== target) return "path does not end at the target";
+  if (Math.abs(sum - lengthM) > 0.01) return `length sum ${sum.toFixed(3)}m does not match reported ${lengthM.toFixed(3)}m`;
   return null;
 }
 

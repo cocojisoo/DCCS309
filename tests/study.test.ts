@@ -14,7 +14,7 @@ import { RAW_COLUMNS, type RawRun } from "../src/lib/study/benchmark.ts";
 import { TupleHeap } from "../src/lib/study/tupleHeap.ts";
 import { customizeCch, prepareCch, queryCch, updateCch } from "../src/lib/study/cch.ts";
 import { LpaStar } from "../src/lib/study/lpa.ts";
-import { classroomScene } from "../src/lib/study/classroomScenes.ts";
+import { classroomScene, PHASE } from "../src/lib/study/classroomScenes.ts";
 
 const NO_LIMIT = { timeLimitMs: null, heuristicScale: 0.999 };
 
@@ -116,7 +116,7 @@ describe("알고리즘 교실 장면", () => {
   test("CCH 장면: 지름길을 만들고, 질의 단계가 있다", () => {
     const scene = classroomScene("cch");
     assert.ok(scene.shortcuts!.length > 0);
-    assert.ok(scene.steps.some((s) => s.phase === "질의"));
+    assert.ok(scene.steps.some((s) => s.phase === PHASE.query));
     assert.equal(scene.ranks!.length, g.n);
   });
 
@@ -124,8 +124,8 @@ describe("알고리즘 교실 장면", () => {
     const scene = classroomScene("lpa");
     const last = scene.steps.at(-1)!;
     assert.deepEqual(route(last.final!), [0, 2, 4, 6, 7]);
-    const replans = scene.steps.filter((s) => s.phase === "다시 계획").length;
-    const firsts = scene.steps.filter((s) => s.phase === "첫 계획").length;
+    const replans = scene.steps.filter((s) => s.phase === PHASE.replan).length;
+    const firsts = scene.steps.filter((s) => s.phase === PHASE.first).length;
     assert.ok(replans > 0 && replans < firsts + 1);
   });
 });

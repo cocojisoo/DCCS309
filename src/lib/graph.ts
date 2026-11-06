@@ -88,7 +88,7 @@ export function loadGraph(mode: Mode): Promise<Graph> {
   if (!p) {
     p = fetch(`/graph/${mode}.json`)
       .then((r) => {
-        if (!r.ok) throw new Error(`그래프를 불러오지 못했습니다 (${mode}.json, HTTP ${r.status})`);
+        if (!r.ok) throw new Error(`Could not load the graph (${mode}.json, HTTP ${r.status})`);
         return r.json() as Promise<GraphJson>;
       })
       .then(toGraph);

@@ -26,7 +26,7 @@ export default function GrowthView({ summary }: { summary: StudySummary }) {
           x: r.graph_nodes,
           y: pick(r),
           cross: r.timeout > 0,
-          label: `${r.size_label} (교차로 ${formatInt(r.graph_nodes)}) · ${fmt(pick(r))}${r.timeout ? ` · 시간 초과 ${r.timeout}/${r.runs}번` : ""}`,
+          label: `${r.size_label} (${formatInt(r.graph_nodes)} intersections) · ${fmt(pick(r))}${r.timeout ? ` · timed out ${r.timeout}/${r.runs}` : ""}`,
         })),
     }));
 
@@ -34,62 +34,62 @@ export default function GrowthView({ summary }: { summary: StudySummary }) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="tabs" role="tablist" aria-label="트랙">
+        <div className="tabs" role="tablist" aria-label="Experiment type">
           <button role="tab" className="tab" aria-selected={track === 1} onClick={() => setTrack(1)}>
-            같은 경로 · 지도만 키우기
+            Same routes · grow the map only
           </button>
           <button role="tab" className="tab" aria-selected={track === 2} onClick={() => setTrack(2)}>
-            먼 경로 · 거리도 함께 키우기
+            Far routes · grow the distance too
           </button>
         </div>
         <span className="text-xs faint">
           {track === 1
-            ? `가장 작은 조각에서 고른 쌍 ${summary.pairs.track1.length}개를 모든 크기에서 똑같이 사용`
-            : `크기마다 가장 먼 두 교차로 거리의 ${summary.config.track_growing_od.straight_distance_ratio.map((r) => r * 100).join("~")}% 떨어진 쌍 최대 ${summary.config.track_growing_od.pairs_max}개`}
+            ? `The same ${summary.pairs.track1.length} pairs from the smallest map are used at every size`
+            : `At each size, up to ${summary.config.track_growing_od.pairs_max} pairs separated by ${summary.config.track_growing_od.straight_distance_ratio.map((r) => r * 100).join("–")}% of the map's largest straight-line distance`}
         </span>
       </div>
 
       {summary.heuristic.violations > 0 && (
         <p className="card text-sm" style={{ borderColor: "var(--bad)" }}>
-          A* 힌트가 어긋나는 도로가 {summary.heuristic.violations}개 있어, A* 결과는 공식 비교에 쓰지 않습니다 (설계도 8.4).
+          {summary.heuristic.violations} roads violate the A* hint condition, so A* results are excluded from the official comparison (blueprint 8.4).
         </p>
       )}
 
       <LogChart
-        title="지도 크기에 따른 탐색 시간"
-        subtitle={`경로마다 ${summary.config.run.repeats}회 반복의 중간값 → 경로들의 중간값 · 가로·세로 모두 로그 눈금 · CCH 는 질의만 (전처리는 아래 표)`}
-        xLabel="실제 교차로 수"
-        yLabel="탐색 시간 (ms)"
+        title="Search time by map size"
+        subtitle={`Median of ${summary.config.run.repeats} repeats per route, then median across routes · both axes logarithmic · CCH: query only (preprocessing in the table below)`}
+        xLabel="Actual intersections"
+        yLabel="Search time (ms)"
         series={seriesOf((r) => r.median_ms, formatMs)}
-        formatY={(v) => (v >= 1 ? `${v.toLocaleString("ko-KR")}ms` : `${v}ms`)}
-        refLine={{ y: limitMs, label: `DFS 제한시간 ${summary.config.run.dfs_time_limit_s}초` }}
+        formatY={(v) => (v >= 1 ? `${v.toLocaleString("en-US")}ms` : `${v}ms`)}
+        refLine={{ y: limitMs, label: `DFS time limit ${summary.config.run.dfs_time_limit_s} s` }}
       />
       <LogChart
-        title="지도 크기에 따른 방문 횟수"
-        subtitle="교차로에 들어간 총 횟수 (같은 곳을 다시 들어가면 또 셈) · 쌍들의 중간값"
-        xLabel="실제 교차로 수"
-        yLabel="방문 횟수"
+        title="Visits by map size"
+        subtitle="Total times an intersection was entered (re-entries count again) · median across pairs"
+        xLabel="Actual intersections"
+        yLabel="Visits"
         series={seriesOf((r) => r.median_visits, formatInt)}
         formatY={(v) => (v >= 1e6 ? `${v / 1e6}M` : v >= 1e3 ? `${v / 1e3}K` : String(v))}
       />
 
       <details className="card">
-        <summary className="cursor-pointer font-semibold">표로 보기 (summary.csv 와 같은 값)</summary>
+        <summary className="cursor-pointer font-semibold">View as a table (same values as summary.csv)</summary>
         <div className="table-wrap mt-3">
           <table className="data">
             <thead>
               <tr>
-                <th>크기</th>
-                <th>교차로</th>
-                <th>방법</th>
-                <th>쌍</th>
-                <th>성공 / 초과</th>
-                <th>시간 중간값</th>
-                <th>범위</th>
-                <th>방문 중간값</th>
-                <th>방문 ÷ 고유</th>
-                <th>길이 중간값</th>
-                <th>이동 시간</th>
+                <th>Size</th>
+                <th>Intersections</th>
+                <th>Method</th>
+                <th>Pairs</th>
+                <th>Success / timeout</th>
+                <th>Median time</th>
+                <th>Range</th>
+                <th>Median visits</th>
+                <th>Visits ÷ unique</th>
+                <th>Median length</th>
+                <th>Travel time</th>
               </tr>
             </thead>
             <tbody>
@@ -121,20 +121,20 @@ export default function GrowthView({ summary }: { summary: StudySummary }) {
       </details>
       {summary.log.cch?.length > 0 && (
         <details className="card">
-          <summary className="cursor-pointer font-semibold">CCH 를 쓰기 전에 한 번 드는 시간 (크기별)</summary>
+          <summary className="cursor-pointer font-semibold">One-time CCH setup by map size</summary>
           <p className="text-xs faint mt-2">
-            전처리는 도로 모양만 보고 지름길을 만드는 일(지도가 바뀔 때만), 커스터마이징은 지름길에 비용을 채우는 일(비용이 바뀔 때마다)입니다.
-            위 그래프의 CCH 탐색 시간에는 질의만 들어 있습니다.
+            Preprocessing builds shortcuts from the road layout (only when the map changes). Customization fills costs into the shortcuts (whenever costs change).
+            The CCH search time in the charts above covers the query only.
           </p>
           <div className="table-wrap mt-2">
             <table className="data">
               <thead>
                 <tr>
-                  <th>크기</th>
-                  <th>교차로</th>
-                  <th>지름길</th>
-                  <th>전처리</th>
-                  <th>커스터마이징</th>
+                  <th>Size</th>
+                  <th>Intersections</th>
+                  <th>Shortcuts</th>
+                  <th>Preprocessing</th>
+                  <th>Customization</th>
                 </tr>
               </thead>
               <tbody>

@@ -4,10 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const LINKS = [
-  { href: "/", label: "대시보드" },
-  { href: "/algorithms", label: "알고리즘" },
-  { href: "/study", label: "크기별 실험" },
-  { href: "/summary", label: "최종 정리" },
+  { href: "/", label: "Dashboard" },
+  { href: "/algorithms", label: "Algorithms" },
+  { href: "/study", label: "Experiments" },
+  { href: "/summary", label: "Final Summary" },
 ] as const;
 
 export default function Nav() {
